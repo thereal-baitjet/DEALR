@@ -34,6 +34,16 @@ The repository began at `4b023d1` with domain/service/database foundations, 16 a
 
 ## Outstanding external gates
 
+## Conversation and broker milestone — 2026-09-12
+
+- Added persistent conversation pages, inbox, offer/counter history, explicit human approval for negotiation, block/unblock and message reports, broker directory, stage-filtered broker dashboard, grounded copilot, admin moderation UI, and trust guidance.
+- Fixed counteroffers being omitted from the broker summary, stale offer responses, read receipts clearing unseen messages, and conversation ordering after inquiries/offers.
+- Production build, **22 automated tests**, and **12 HTTP checks** pass. The route crawl includes all current navigation targets. This is HTTP route coverage, not browser interaction verification.
+- Supabase plugin installation/connection is confirmed. Its project-management tools have not been exposed to this running session, so no hosted database change or authentication validation is claimed.
+- The user explicitly requested a Vercel progress deployment during this session. That authorizes publishing an in-progress preview; it does not certify the full MVP or clear the existing browser/mobile restriction. Vercel access is still pending.
+
+## Remaining external gates
+
 - Hosted Supabase signup, confirmation, login, logout, refresh, and revocation: no project credentials supplied.
 - Browser interaction, mobile widths, accessibility interaction, hydration/console checks, and visual polish: the existing AGENTS.md records a browser/mobile QA denial; this session does not bypass it.
 - Live LLM extraction, semantic embeddings, map view, and scalable matching performance are not yet implemented or verified.

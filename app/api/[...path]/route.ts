@@ -35,6 +35,8 @@ async function handle(request: Request, context: Context) {
       const actor = await currentActor();
       if (route === 'state' && method === 'GET') {
         result = { ...(actor ? await (await service()).state(actor) : { actor: null, profile: emptyProfile, saved: [], demo: false, brokers: [], ready: dataConfigured() }), demoAvailable: demoEnabled(), authAvailable: authConfigured(), preview: !process.env.DATABASE_URL && !actor };
+      } else if (route === 'brokers' && method === 'GET' && !dataConfigured()) {
+        result = [];
       } else if (route === 'marketplace' && method === 'GET' && !process.env.DATABASE_URL && !actor) {
         result = previewSearch(url.searchParams);
       } else if (path[0] === 'listings' && path[1]?.startsWith('sample-') && !actor && !process.env.DATABASE_URL && path.length <= 3) {
@@ -69,7 +71,7 @@ async function handle(request: Request, context: Context) {
         else if (path[0] === 'conversations' && id && path.length === 3) {
           if (path[2] === 'copilot' && method === 'GET') result = await api.copilot(actor, id);
           else if (path[2] === 'messages' && method === 'POST') result = await api.message(actor, id, input);
-          else if (path[2] === 'read' && method === 'POST') result = await api.markRead(actor, id);
+          else if (path[2] === 'read' && method === 'POST') result = await api.markRead(actor, id, input);
           else if (path[2] === 'broker' && method === 'POST') result = await api.requestBroker(actor, id, input);
           else if (path[2] === 'stage' && method === 'POST') result = await api.stage(actor, id, input);
           else throw new AppError(404, 'Action not found.');

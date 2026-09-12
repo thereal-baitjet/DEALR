@@ -52,3 +52,42 @@ test('mileage limits are not mistaken for a dollar budget',()=>{
  const intent=parseQuery('truck under 70k miles');
  assert.equal(intent.budget,undefined);assert.equal(intent.attributes.mileage.max,70000);
 });
+
+test('broker summary uses the latest counter and stale offer responses are rejected',async()=>{
+ const initial=await service.conversation(buyer,businessLead),offer=initial.offers[0];
+ await service.negotiate(seller,offer.id,{action:'COUNTER',amount:245000,expectedHistoryId:null});
+ const summary=await service.copilot(broker,businessLead);
+ assert.equal(summary.offer,24500000);assert.equal(summary.gap,2000000);assert.equal(summary.commission,2450000);
+ await failure(()=>service.negotiate(buyer,offer.id,{action:'ACCEPT_FOR_DISCUSSION',expectedHistoryId:null}),409);
+ const current=(await service.conversation(buyer,businessLead)).offers[0];
+ assert.equal(current.status,'COUNTERED');
+ await service.negotiate(buyer,offer.id,{action:'ACCEPT_FOR_DISCUSSION',expectedHistoryId:current.history.at(-1)!.id});
+ assert.equal((await service.conversation(seller,businessLead)).offers[0].status,'ACCEPTED_FOR_DISCUSSION');
+});
+
+test('read receipts stop at the displayed message and cannot move backwards or cross conversations',async()=>{
+ const listing=await service.saveListing(seller,input('tacoma',{title:'Read receipt regression truck'}));
+ const {leadId}=await service.inquire(buyer,listing.id,{message:'First visible message'});
+ const first=(await service.conversation(seller,leadId)).messages[0];
+ await db.query('UPDATE messages SET created_at=? WHERE id=?',['2020-01-01T00:00:00.000Z',first.id]);
+ await service.message(buyer,leadId,{message:'Arrived after the page was loaded'});
+ const second=(await service.conversation(seller,leadId)).messages.at(-1)!;
+ await service.markRead(seller,leadId,{messageId:first.id});
+ assert.equal((await service.dashboard(seller)).leads.find(lead=>lead.id===leadId)!.unread,1);
+ await service.markRead(seller,leadId,{messageId:second.id});
+ await service.markRead(seller,leadId,{messageId:first.id});
+ assert.equal((await service.dashboard(seller)).leads.find(lead=>lead.id===leadId)!.unread,0);
+ await failure(()=>service.markRead(seller,p2pLead,{messageId:second.id}),404);
+ await failure(()=>service.markRead(outsider,leadId,{messageId:first.id}),404);
+});
+
+test('blocking state survives refresh and only the blocking party can remove their own block',async()=>{
+ await service.block(seller,{actorId:buyer.id,blocked:true});
+ assert.equal((await service.conversation(seller,p2pLead)).blockedByMe,true);
+ assert.equal((await service.conversation(buyer,p2pLead)).blockedByMe,false);
+ assert.equal((await service.conversation(buyer,p2pLead)).blocked,true);
+ await service.block(buyer,{actorId:seller.id,blocked:false});
+ await failure(()=>service.message(buyer,p2pLead,{message:'Still blocked'}),403);
+ await service.block(seller,{actorId:buyer.id,blocked:false});
+ assert.equal((await service.conversation(buyer,p2pLead)).blocked,false);
+});

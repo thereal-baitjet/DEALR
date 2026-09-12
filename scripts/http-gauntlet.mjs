@@ -41,7 +41,7 @@ try {
   await start();
   const anonymous = jar(), buyer = jar(), attacker = jar();
   await check('public route shells and preview catalog', async () => {
-    for (const route of ['/', '/marketplace', '/login', '/signup', '/sell', '/dashboard', '/listing/sample-tacoma']) assert.equal((await fetch(origin + route)).status, 200, route);
+    for (const route of ['/', '/marketplace', '/login', '/signup', '/sell', '/dashboard', '/listing/sample-tacoma', '/messages', '/messages/missing', '/broker', '/brokers', '/admin', '/trust']) assert.equal((await fetch(origin + route)).status, 200, route);
     const results = await api(anonymous, 'marketplace?q=' + encodeURIComponent('Toyota truck under $30K'));
     assert.ok(results.total > 0); assert.ok(results.listings.every(listing => listing.price <= 3000000));
     await api(anonymous, 'listings/does-not-exist', undefined, 404);

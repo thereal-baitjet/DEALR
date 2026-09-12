@@ -24,6 +24,16 @@ The repository began at `4b023d1` with domain/service/database foundations, 16 a
 
 ## Remaining verification
 
+## Seller and dashboard milestone
+
+- Added a description-first listing editor, editable category attributes, saved drafts, explicit review/approval before publishing, editing, unpublishing, wanted requests, buying/selling dashboards, saved items, match discovery, preferences, and account settings.
+- Production build passed. The running production application passed **12 HTTP Gauntlet checks**, including all three final-boss scenarios through authenticated HTTP, server-side permissions, request idempotency, CSRF, workspace isolation, logout/re-entry, and persistence after stopping and restarting the application process.
+- HTTP tests create their own local PostgreSQL data directory and clear all live database/auth configuration. They do not touch a connected production database.
+- The HTTP Gauntlet found valid same-origin writes were rejected when Next.js supplied an internal hostname. CSRF now compares against the configured application origin; the foreign-origin regression still fails with 403 as required.
+- This evidence validates the HTTP/API boundary and persistence, not browser interaction or hosted Supabase sessions.
+
+## Outstanding external gates
+
 - Hosted Supabase signup, confirmation, login, logout, refresh, and revocation: no project credentials supplied.
 - Browser interaction, mobile widths, accessibility interaction, hydration/console checks, and visual polish: the existing AGENTS.md records a browser/mobile QA denial; this session does not bypass it.
 - Live LLM extraction, semantic embeddings, map view, and scalable matching performance are not yet implemented or verified.

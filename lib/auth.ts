@@ -67,6 +67,20 @@ export async function supabase() {
   });
 }
 
+let googleSetting: { enabled: boolean; expires: number } | undefined;
+// Offer Google only when the Supabase project reports the provider enabled. Cached briefly per instance.
+export async function googleAvailable() {
+  if (!authConfigured()) return false;
+  if (googleSetting && googleSetting.expires > Date.now()) return googleSetting.enabled;
+  let enabled = false, ttl = 30_000;
+  try {
+    const response = await fetch(new URL('/auth/v1/settings', process.env.NEXT_PUBLIC_SUPABASE_URL), { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! }, cache: 'no-store', signal: AbortSignal.timeout(3000) });
+    if (response.ok) { enabled = (await response.json())?.external?.google === true; ttl = 300_000; }
+  } catch {}
+  googleSetting = { enabled, expires: Date.now() + ttl };
+  return enabled;
+}
+
 export async function currentActor(): Promise<Actor | null> {
   const demo = await readDemo();
   if (demo?.active) return (await service()).identity(demo.id, 'Demo', [], demo.role);
@@ -75,7 +89,7 @@ export async function currentActor(): Promise<Actor | null> {
   // Validate with Supabase. A client-provided role or decoded session is never authority.
   const { data: { user }, error } = await client.auth.getUser();
   if (error || !user) return null;
-  return (await service()).identity(user.id, String(user.user_metadata?.name || 'DEALR member'), (process.env.DEALR_ADMIN_IDS || '').split(',').map(id => id.trim()).filter(Boolean));
+  return (await service()).identity(user.id, String(user.user_metadata?.name || user.user_metadata?.full_name || 'DEALR member'), (process.env.DEALR_ADMIN_IDS || '').split(',').map(id => id.trim()).filter(Boolean));
 }
 
 export async function signOut() {

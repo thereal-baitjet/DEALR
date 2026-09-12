@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { currentActor, signOut, startDemo, supabase } from '@/lib/auth';
+import { currentActor, googleAvailable, signOut, startDemo, supabase } from '@/lib/auth';
 import { authConfigured, dataConfigured, demoEnabled, service } from '@/lib/runtime';
 import { AppError, emptyProfile, groundedAnswer } from '@/lib/domain';
 import { body } from '@/lib/http';
@@ -35,7 +35,7 @@ async function handle(request: Request, context: Context) {
     } else {
       const actor = await currentActor();
       if (route === 'state' && method === 'GET') {
-        result = { ...(actor ? await (await service()).state(actor) : { actor: null, profile: emptyProfile, saved: [], demo: false, brokers: [], ready: dataConfigured() }), demoAvailable: demoEnabled(), authAvailable: authConfigured(), preview: !process.env.DATABASE_URL && !actor };
+        result = { ...(actor ? await (await service()).state(actor) : { actor: null, profile: emptyProfile, saved: [], demo: false, brokers: [], ready: dataConfigured() }), demoAvailable: demoEnabled(), authAvailable: authConfigured(), googleAvailable: await googleAvailable(), preview: !process.env.DATABASE_URL && !actor };
       } else if (route === 'brokers' && method === 'GET' && !dataConfigured()) {
         result = [];
       } else if (route === 'marketplace' && method === 'GET' && !process.env.DATABASE_URL && !actor) {

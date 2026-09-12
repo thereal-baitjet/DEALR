@@ -6,7 +6,7 @@ import { request } from '@/lib/client';
 import type { SessionState } from '@/lib/contracts';
 import { Empty, Loading } from './ui';
 
-const initial: SessionState = { actor: null, profile: emptyProfile, saved: [], demo: false, brokers: [], ready: false, demoAvailable: false, authAvailable: false, preview: true };
+const initial: SessionState = { actor: null, profile: emptyProfile, saved: [], demo: false, brokers: [], ready: false, demoAvailable: false, authAvailable: false, googleAvailable: false, preview: true };
 const Context = createContext<{ state: SessionState; loading: boolean; refresh: () => Promise<void>; notify: (message: string) => void }>({ state: initial, loading: true, refresh: async () => {}, notify: () => {} });
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(initial), [loading, setLoading] = useState(true), [toast, setToast] = useState('');

@@ -20,6 +20,16 @@ The user authorized an in-progress Vercel deployment on 2026-09-12 and requested
 
 Supabase recommends transaction pooling for serverless runtimes and direct connections for migrations; session pooling is an alternative when the setup environment needs IPv4. Copy endpoint values from the project's Connect dialog. [Supabase connection documentation](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
+## Google sign-in
+
+The login and signup pages show **Continue with Google** only when Supabase Auth reports the Google provider enabled. The server checks this and caches the answer for up to five minutes per instance. Otherwise the button stays hidden and email sign-in is unchanged. The flow is Supabase's server-side PKCE flow: `/auth/google` starts it and the existing `/auth/callback` exchanges the code. Supabase links a Google identity to an existing account with the same verified email.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), configure the OAuth consent screen (External, app name DEALR, your support email), then create an **OAuth client ID** of type **Web application**.
+2. Add the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`, using the DEALR Supabase project's actual reference. This flow needs no JavaScript origins.
+3. In Supabase, open Authentication → Sign In / Providers → Google, enable it, and paste the client ID and client secret. Keep the secret out of Git and chat.
+4. In Supabase Authentication → URL Configuration, set the Site URL to `https://dealr-mu.vercel.app` (any path on that host is then allowed) and add `https://*-thereal-baitjets-projects.vercel.app/**` for preview deployments. Unlisted redirect targets fall back to the Site URL.
+5. Redeploy after adding the Supabase variables in Vercel. `NEXT_PUBLIC_` values are compiled into the build.
+
 ## Vercel setup
 
 Import `thereal-baitjet/DEALR`, choose the repository root and the Next.js preset, and use the committed npm build/install commands. No custom domain change is needed for the progress preview.
@@ -47,7 +57,8 @@ Run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`
 ## Current external status
 
 - Supabase plugin: connected, confirmed by the user and plugin state.
-- Supabase project changes: none; project-management tool definitions were not exposed to this running session after connection.
-- Vercel plugin: installation/account connection pending.
-- Hosted deployment URL: none verified.
+- Supabase project changes: none. The connected organization has no DEALR project; the user deferred creating one on 2026-09-12.
+- Google OAuth client: not created yet, so the Google button stays hidden on hosted deployments.
+- Vercel: project `dealr` (team `thereal-baitjets-projects`) is connected to GitHub `thereal-baitjet/DEALR`. Pushes to `main` deploy production at `dealr-mu.vercel.app`; other branches deploy previews. Vercel Authentication protects these URLs, and no environment variables are set yet.
+- Hosted deployment URL: preview `dealr-25dilan69-thereal-baitjets-projects.vercel.app` (commit `e0bc053`) returned 200 for `/`, `/marketplace`, and the sample-catalog APIs through authenticated `vercel curl`. Account APIs returned 503 as designed without a database.
 - Browser/mobile QA: existing repository restriction remains in force.

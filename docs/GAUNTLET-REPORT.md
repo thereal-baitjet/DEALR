@@ -53,3 +53,11 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Production build and **24 automated Gauntlet checks** pass. **12 HTTP checks** and **3 local serverless-preview checks** pass. Preview checks cover missing-service behavior, catalog/search, public route shells, fact-based answers, valid hosted origins, and foreign-origin rejection.
 - Hosted Supabase sessions, actual network/database connectivity, a Vercel deployment, and browser/mobile behavior remain unverified. No hosted deployment is claimed.
 - See `docs/DEPLOYMENT.md` for the prepared configuration and remaining account/project setup.
+
+## Google sign-in milestone — 2026-09-12
+
+- Added **Continue with Google** to login and signup (CORE.md §26). The button renders only when the Supabase project reports the Google provider enabled. `/auth/google` starts Supabase's server-side PKCE flow and the existing `/auth/callback` completes it. Destinations pass through the same `safeNext` guard, and Google profile names fall back to `full_name`.
+- The login page now explains failed sign-in callbacks (`?error=`) instead of returning silently.
+- Typecheck, production build, **24 automated Gauntlet checks**, **12 HTTP checks**, and **5 local serverless-preview checks** pass. The two new preview checks cover the hidden/unavailable state and, against a stand-in Supabase settings endpoint, the authorize redirect, PKCE challenge, verifier cookie, application-origin callback, and rewriting of an off-site `next` to `/dashboard`.
+- The user requested this change be pushed to `main` and deployed. Vercel is now connected to GitHub, so `main` deploys production.
+- Not verified: a real Google consent screen and Supabase code exchange. No DEALR Supabase project or Google OAuth client exists yet (the user deferred Supabase creation), so hosted deployments keep the button hidden.

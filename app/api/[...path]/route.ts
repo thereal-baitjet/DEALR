@@ -5,6 +5,7 @@ import { authConfigured, dataConfigured, demoEnabled, service } from '@/lib/runt
 import { AppError, emptyProfile, groundedAnswer } from '@/lib/domain';
 import { body } from '@/lib/http';
 import { previewListing, previewSearch } from '@/lib/preview';
+import { applicationOrigin } from '@/lib/origin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ async function handle(request: Request, context: Context) {
       const data = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), name: z.string().trim().min(2).max(100).optional() }).strict().parse(input);
       const client = await supabase();
       const response = route === 'auth/signup'
-        ? await client.auth.signUp({ email: data.email, password: data.password, options: { data: { name: data.name || 'DEALR member' }, emailRedirectTo: new URL('/auth/callback', process.env.NEXT_PUBLIC_APP_URL || url.origin).toString() } })
+        ? await client.auth.signUp({ email: data.email, password: data.password, options: { data: { name: data.name || 'DEALR member' }, emailRedirectTo: new URL('/auth/callback', applicationOrigin(request)).toString() } })
         : await client.auth.signInWithPassword({ email: data.email, password: data.password });
       if (response.error) throw new AppError(400, route === 'auth/login' ? 'Sign-in failed. Check your email, password, and email confirmation.' : 'Could not create an account. Check your details and try again.');
       result = { signedIn: Boolean(response.data.session), confirmationRequired: !response.data.session };

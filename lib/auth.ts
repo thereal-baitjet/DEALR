@@ -44,7 +44,7 @@ export async function writeDemo(session: DemoSession) {
   const payload = Buffer.from(JSON.stringify(session)).toString('base64url');
   const signature = createHmac('sha256', await secret()).update(payload).digest('base64url');
   (await cookies()).set(demoCookie, payload + '.' + signature, {
-    httpOnly: true, sameSite: 'lax', secure: (process.env.NEXT_PUBLIC_APP_URL || '').startsWith('https:'),
+    httpOnly: true, sameSite: 'lax', secure: Boolean(process.env.VERCEL) || (process.env.NEXT_PUBLIC_APP_URL || '').startsWith('https:'),
     path: '/', maxAge: Math.max(0, Math.floor((session.expires - Date.now()) / 1000)),
   });
 }

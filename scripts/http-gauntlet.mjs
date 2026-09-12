@@ -8,7 +8,7 @@ import path from 'node:path';
 await mkdir('.test-output', { recursive: true });
 const directory = await mkdtemp(path.resolve('.test-output/http-'));
 const port = Number(process.env.DEALR_TEST_PORT || 3100), origin = 'http://127.0.0.1:' + port;
-const environment = { ...process.env, DATABASE_URL: '', NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', DEALR_DEMO_MODE: 'true', DEALR_DEMO_SECRET: randomBytes(48).toString('hex'), DEALR_DATA_DIR: directory, NEXT_PUBLIC_APP_URL: origin, NEXT_TELEMETRY_DISABLED: '1' };
+const environment = { ...process.env, DATABASE_URL: '', NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', VERCEL: '', DEALR_DEMO_MODE: 'true', DEALR_DEMO_SECRET: randomBytes(48).toString('hex'), DEALR_DATA_DIR: directory, NEXT_PUBLIC_APP_URL: origin, NEXT_TELEMETRY_DISABLED: '1' };
 let server, output = '', passed = 0;
 const records = [];
 async function start() {

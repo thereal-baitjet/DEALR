@@ -8,7 +8,8 @@ import { getDatabase, parameters, type Database } from './database';
 import { DealrService } from './service';
 import { AppError } from './domain';
 
-export const demoEnabled = () => process.env.DEALR_DEMO_MODE === 'true';
+export const demoEnabled = () => process.env.DEALR_DEMO_MODE === 'true'
+  && (!process.env.VERCEL || Boolean(process.env.DATABASE_URL && process.env.DEALR_DEMO_SECRET && process.env.DEALR_DEMO_SECRET.length >= 32));
 export const authConfigured = () => Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && process.env.DATABASE_URL);
 export const dataConfigured = () => Boolean(process.env.DATABASE_URL) || demoEnabled();
 const shared = globalThis as typeof globalThis & { dealrLocalDatabase?: Promise<Database> };

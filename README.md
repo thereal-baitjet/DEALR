@@ -20,14 +20,17 @@ Demo access does not create a real user, confer live broker permissions, or publ
 Copy `.env.example` to `.env.local` and configure:
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Supabase Auth.
-- `DATABASE_URL`: PostgreSQL transaction pooler connection string with migration permissions for setup. Runtime tables are in the private `dealr` schema, outside the public Data API.
-- `NEXT_PUBLIC_APP_URL`: approved application origin; register `/auth/callback` with Supabase's redirect allowlist.
+- `DATABASE_URL`: PostgreSQL transaction pooler connection string. Runtime tables are in the private `dealr` schema, outside the public Data API.
+- `MIGRATION_DATABASE_URL`: direct or session-pooler connection for schema setup; defaults to `DATABASE_URL` when omitted.
+- `NEXT_PUBLIC_APP_URL`: approved custom application origin; register `/auth/callback` with Supabase's redirect allowlist. Vercel's exact generated deployment/branch domains are recognized automatically when system environment variables are enabled.
 - `DEALR_ADMIN_IDS`: server-managed, verified Supabase user UUIDs. Signup metadata never grants permissions. Approved administrators can grant broker access.
 - `DEALR_DEMO_MODE`: disabled by default. If explicitly enabled in production, also set `DEALR_DEMO_SECRET` to at least 32 random characters. Serverless hosts require a real `DATABASE_URL`.
 
 ```sh
 npm run db:migrate
 npm run build
+npm run test:http
+npm run test:preview
 npm start
 ```
 
@@ -41,11 +44,13 @@ npm run typecheck
 npm run build
 ```
 
-The automated Gauntlet uses an actual PostgreSQL engine with pgvector. See [docs/GAUNTLET-REPORT.md](docs/GAUNTLET-REPORT.md) for evidence and unverified gates. Browser/mobile QA remains restricted by the repository instructions. No production deployment or full Gauntlet pass is claimed.
+The automated Gauntlet uses an actual PostgreSQL engine with pgvector. The HTTP checks run the compiled application with isolated test data. Preview checks exercise local Vercel-like configuration without external credentials. See [docs/GAUNTLET-REPORT.md](docs/GAUNTLET-REPORT.md) for evidence and unverified gates. Browser/mobile QA remains restricted by the repository instructions. No hosted deployment or full Gauntlet pass is claimed.
 
 ## Milestone status
 
-App foundation: Next.js App Router, design system, login/signup, signed demo sessions, persistent local demo database, Supabase integration, and authorized API adapters for the existing marketplace service. Marketplace screens and workflow interfaces are being connected in subsequent commits.
+Implemented: universal discovery and filters, listing details and fact-based assistance, seller drafts/review/publishing, wanted requests/matches, buyer/seller dashboards, preferences, persistent conversations, offers and counteroffers, broker directory/pipeline/copilot, reports/blocking, and administrator moderation. Optional demo accounts allow buyer, seller, and broker views inside the same private fictional marketplace.
+
+The Vercel progress preview is explicitly authorized by the user. Setup is documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Supabase connection is confirmed, but hosted project configuration still needs to be performed when its project tools are available. Vercel account connection is pending.
 
 AI uses explicit, deterministic fallback rules. No live LLM or embedding pipeline is currently active. Payments, escrow, legally binding agreements, and blockchain settlement are not implemented.
 

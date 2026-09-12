@@ -4,7 +4,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { vector } from '@electric-sql/pglite-pgvector';
 import { readFile } from 'node:fs/promises';
 import { DealrService } from '../lib/service';
-import { parameters,type Database } from '../lib/database';
+import { parameters,pooledDatabase,type Database } from '../lib/database';
 import { AppError, money,parseQuery,matchListing,validateListing,extractListing,groundedAnswer,Listing,Actor } from '../lib/domain';
 import { samples } from '../lib/samples';
 import { checkMutation,body } from '../lib/http';
@@ -90,4 +90,36 @@ test('blocking state survives refresh and only the blocking party can remove the
  await failure(()=>service.message(buyer,p2pLead,{message:'Still blocked'}),403);
  await service.block(seller,{actorId:buyer.id,blocked:false});
  assert.equal((await service.conversation(buyer,p2pLead)).blocked,false);
+});
+
+test('Vercel mutation origins use exact project domains and reject forged forwarded hosts',async()=>{
+ const keys=['VERCEL','VERCEL_ENV','VERCEL_URL','VERCEL_BRANCH_URL','VERCEL_PROJECT_PRODUCTION_URL','NEXT_PUBLIC_APP_URL'];
+ const previous=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ try{
+  Object.assign(process.env,{VERCEL:'1',VERCEL_ENV:'preview',VERCEL_URL:'dealr-preview.vercel.app',VERCEL_BRANCH_URL:'dealr-git-main.vercel.app',VERCEL_PROJECT_PRODUCTION_URL:'dealr-production.vercel.app',NEXT_PUBLIC_APP_URL:''});
+  const req=(origin:string)=>new Request('http://internal:3000/api/action',{method:'POST',headers:{origin,'content-type':'application/json','x-forwarded-host':'evil.vercel.app'}});
+  checkMutation(req('https://dealr-preview.vercel.app'));checkMutation(req('https://dealr-git-main.vercel.app'));
+  assert.throws(()=>checkMutation(req('https://evil.vercel.app')));assert.throws(()=>checkMutation(req('https://dealr-production.vercel.app')));
+  const {applicationOrigin}=await import('../lib/origin');
+  assert.equal(applicationOrigin(req('https://dealr-git-main.vercel.app')),'https://dealr-git-main.vercel.app');
+  process.env.VERCEL_ENV='production';checkMutation(req('https://dealr-production.vercel.app'));
+ }finally{for(const key of keys){if(previous[key]===undefined)delete process.env[key];else process.env[key]=previous[key]}}
+});
+
+test('pooled queries find private tables per transaction and roll back nested work atomically',async()=>{
+ await pg.exec('SET search_path TO public');
+ const pooled=pooledDatabase({
+  unsafe:async(sql:string,params:unknown[]=[]) => (await pg.query(sql,params)).rows,
+  begin:fn=>pg.transaction(transaction=>fn({unsafe:async(sql:string,params:unknown[]=[]) => (await transaction.query(sql,params)).rows})),
+ });
+ try{
+  assert.equal((await pooled.query<{name:string}>('SELECT name FROM actors WHERE id=?',[buyer.id]))[0].name,'Buyer');
+  assert.equal((await pg.query<{path:string}>("SELECT current_setting('search_path') AS path")).rows[0].path,'public');
+  await assert.rejects(()=>pooled.transaction(async transaction=>{
+   await transaction.query('UPDATE actors SET name=? WHERE id=?',['Must roll back',buyer.id]);
+   await transaction.transaction(async nested=>{assert.equal((await nested.query<{name:string}>('SELECT name FROM actors WHERE id=?',[buyer.id]))[0].name,'Must roll back')});
+   throw new Error('Abort transaction');
+  }));
+  assert.equal((await pooled.query<{name:string}>('SELECT name FROM actors WHERE id=?',[buyer.id]))[0].name,'Buyer');
+ }finally{await pg.exec('SET search_path TO dealr,public')}
 });

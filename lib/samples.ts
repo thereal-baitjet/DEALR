@@ -1,0 +1,37 @@
+import type { Listing,Attributes } from './domain';
+import type { Category } from './categories';
+const rows:Array<[string,string,Category,string,number|null,Attributes?,string?,string?,string?]>=[
+ ['tacoma','2021 Toyota Tacoma TRD','Vehicles','Trucks',29500,{year:2021,make:'Toyota',model:'Tacoma',mileage:42000,transmission:'Automatic',drivetrain:'4WD'},'Charlotte, NC','For Sale','/images/truck.png'],
+ ['house','3-bedroom home with a front porch','Real Estate','Homes for Sale',425000,{bedrooms:3,bathrooms:2,sqft:1800,property_type:'Single Family',parking:true},'Charlotte, NC','For Sale','/images/house.png'],
+ ['queen-city','Queen City Commercial Cleaning','Businesses','Local Businesses',265000,{annual_revenue:410000,sde:117000,employees:6,seller_financing:true}],
+ ['pressure-washing','Pressure Washing · driveways & walkways','Services','Cleaning',150,{service_area:'Charlotte Metro',availability:'Contact for schedule',scope:'Driveways, walkways, and exterior concrete'}],
+ ['gaming-pc','Gaming PC · ready for your next level','Marketplace','Electronics',1200,{brand:'Custom build',model:'Gaming PC',specifications:'Exact component list available on request'},'Charlotte, NC','For Sale','/images/computer.png'],
+ ['civic','2020 Honda Civic sedan','Vehicles','Cars',18500,{year:2020,make:'Honda',model:'Civic',mileage:61000,transmission:'Automatic'}],
+ ['f150','2019 Ford F-150 work truck','Vehicles','Trucks',22500,{year:2019,make:'Ford',model:'F-150',mileage:82000}],
+ ['truck-premium','2023 Toyota Tacoma Limited','Vehicles','Trucks',40000,{year:2023,make:'Toyota',model:'Tacoma',mileage:16000}],
+ ['apartment','2-bedroom apartment near downtown','Real Estate','Apartments',1850,{bedrooms:2,bathrooms:2,sqft:1100,pets:true,parking:true},'Charlotte, NC','For Rent'],
+ ['storefront','Neighborhood commercial storefront','Real Estate','Commercial Property',3200,{sqft:1700,bathrooms:1,property_type:'Retail'},'Charlotte, NC','For Rent'],
+ ['land','Wooded residential lot · 0.4 acre','Real Estate','Land',85000,{sqft:17424,property_type:'Residential land'},'Asheville, NC'],
+ ['laundromat','Spin & Fold neighborhood laundromat','Businesses','Local Businesses',385000,{annual_revenue:325000,sde:96000,employees:3,seller_financing:true}],
+ ['saas','Appointment scheduling SaaS','Businesses','SaaS',95000,{annual_revenue:42000,sde:27000,employees:1},'Remote'],
+ ['atm-route','Established ATM route · 6 locations','Businesses','Routes',72000,{annual_revenue:68000,sde:32000,seller_financing:true}],
+ ['ecommerce','Outdoor accessories e-commerce shop','Businesses','E-commerce',145000,{annual_revenue:210000,sde:58000},'Remote'],
+ ['macbook','13-inch MacBook · portable workspace','Marketplace','Electronics',650,{brand:'Apple',model:'MacBook',specifications:'Ask seller for year, processor, and battery health'}],
+ ['camera','Mirrorless camera and lens bundle','Marketplace','Electronics',850,{brand:'Sony',model:'Camera kit',specifications:'Confirm model and shutter count before purchase'}],
+ ['sofa','Three-seat linen sofa','Marketplace','Furniture',420,{brand:'Unbranded',model:'Linen sofa'}],
+ ['watch','Vintage mechanical dress watch','Marketplace','Jewelry',1250,{brand:'Unspecified',model:'Mechanical dress watch'}],
+ ['cards','Collectible trading card binder','Marketplace','Collectibles',275,{specifications:'Request card list, photographs, and condition grades'}],
+ ['designer-bag','Leather designer-style tote','Marketplace','Fashion',120,{brand:'Independent maker',model:'Everyday tote'}],
+ ['toolset','Cordless workshop tool set','Marketplace','Tools',280,{brand:'Unspecified',specifications:'Confirm included tools, batteries, and chargers'}],
+ ['vinyl','Vintage vinyl collection · 120 records','Marketplace','Collectibles',1800,{specifications:'Request inventory, grades, and provenance'},'Asheville, NC'],
+ ['web-dev','Website design & development package','Services','Technology Services',2500,{service_area:'Nationwide',scope:'Scope and milestones agreed before work starts'},'Remote'],
+ ['house-cleaning','Recurring house cleaning','Services','Cleaning',120,{service_area:'Charlotte Metro',availability:'Contact for schedule'}],
+ ['landscaping','Lawn care and garden maintenance','Services','Home Services',95,{service_area:'Charlotte Metro',scope:'Request an on-site estimate'}],
+ ['fence','Fence installation and repair','Services','Contractors',null,{service_area:'Charlotte Metro',scope:'Quote based on site visit and materials'}],
+ ['oven','Commercial double-deck oven','Equipment','Restaurant',3800,{brand:'Unspecified',model:'Double-deck oven',specifications:'Confirm dimensions, power requirements, and service history'}],
+ ['excavator','Compact excavator · contractor ready','Equipment','Construction',26500,{year:2018,hours:2100,brand:'Unspecified'}],
+ ['washer','Trailer-mounted pressure washer','Equipment','Commercial Equipment',6800,{specifications:'Ask about flow rate, pressure, motor hours, and accessories'},'Raleigh, NC'],
+ ['rv','Weekend travel trailer','Vehicles','RVs',15750,{year:2017,make:'Unspecified',model:'Travel trailer'},'Asheville, NC'],
+ ['dining','Solid wood dining table','Marketplace','Furniture',340,{model:'Six-seat dining table'},'Raleigh, NC']
+];
+export const samples:Listing[]=rows.map(([id,title,category,subcategory,price,attributes={},location='Charlotte, NC',type,image],index)=>({id:'sample-'+id,workspace:'sample',seller_id:'sample-seller',broker_id:null,title,category,subcategory,transaction_type:type??(category==='Services'?'Service Offered':category==='Businesses'?'Business Opportunity':'For Sale'),price:price===null?null:price*100,currency:'USD',price_type:price===null?'Quote':category==='Services'?'Starting at':type==='For Rent'?'Per month':'Negotiable',location,latitude:location.startsWith('Charlotte')?35.2271:location.startsWith('Raleigh')?35.7796:location.startsWith('Asheville')?35.5951:null,longitude:location.startsWith('Charlotte')?-80.8431:location.startsWith('Raleigh')?-78.6382:location.startsWith('Asheville')?-82.5515:null,radius_miles:null,description:`Fictional demo listing: ${title}. Explore the DEALR workflow with this sample. Information is illustrative and not an actual offer to sell. Ask the seller for supporting records, detailed specifications, condition, and terms.`,condition:['Marketplace','Vehicles','Equipment'].includes(category)?'Used — Excellent':'Not applicable',images:image?[image]:[],video:'',attributes,verification:'Unverified',negotiable:true,delivery:location==='Remote'?['Remote']:['Local pickup'],status:'published',expires_at:null,commission_bps:1000,created_at:new Date(Date.UTC(2026,8,12,12,0,index)).toISOString(),updated_at:'2026-09-12T12:01:00.000Z'}));

@@ -1,0 +1,35 @@
+CREATE SCHEMA IF NOT EXISTS dealr;
+-- Application tables are in a private schema, outside the Supabase Data API.
+-- All reads/writes go through authorized Next.js API handlers.
+CREATE TABLE dealr.actors(id text PRIMARY KEY,workspace text NOT NULL,name text NOT NULL,role text NOT NULL DEFAULT 'member' CHECK(role IN('member','broker','admin')),suspended boolean NOT NULL DEFAULT false,created_at text NOT NULL);
+CREATE INDEX idx_actors_workspace_role ON dealr.actors(workspace,role);
+CREATE TABLE dealr.profiles(actor_id text PRIMARY KEY REFERENCES dealr.actors(id),budget bigint,cash bigint,location text NOT NULL DEFAULT '',min_sde bigint,financing boolean NOT NULL DEFAULT false,category text NOT NULL DEFAULT '',attributes jsonb NOT NULL DEFAULT '{}',latitude double precision,longitude double precision,radius double precision);
+CREATE TABLE dealr.listings(id text PRIMARY KEY,workspace text NOT NULL,seller_id text NOT NULL REFERENCES dealr.actors(id),broker_id text REFERENCES dealr.actors(id),title text NOT NULL,description text NOT NULL,category text NOT NULL,subcategory text NOT NULL,transaction_type text NOT NULL,price bigint CHECK(price>=0 AND price<=100000000000),currency text NOT NULL DEFAULT 'USD',price_type text NOT NULL,location text NOT NULL,latitude double precision,longitude double precision,radius_miles double precision,condition text NOT NULL,images jsonb NOT NULL DEFAULT '[]',video text NOT NULL DEFAULT '',attributes jsonb NOT NULL DEFAULT '{}',verification text NOT NULL DEFAULT 'Unverified',negotiable boolean NOT NULL DEFAULT true,delivery jsonb NOT NULL DEFAULT '[]',status text NOT NULL DEFAULT 'draft' CHECK(status IN('draft','published','removed','expired')),expires_at text,commission_bps integer NOT NULL DEFAULT 1000 CHECK(commission_bps>=0 AND commission_bps<=10000),created_at text NOT NULL,updated_at text NOT NULL);
+CREATE INDEX idx_listings_discovery ON dealr.listings(workspace,status,category,transaction_type,price);
+CREATE INDEX idx_listings_seller ON dealr.listings(seller_id,updated_at);
+CREATE INDEX idx_listings_attributes ON dealr.listings USING gin(attributes);
+CREATE INDEX idx_listings_vehicle_mileage ON dealr.listings(((attributes->>'mileage')::numeric)) WHERE category='Vehicles';
+CREATE INDEX idx_listings_business_sde ON dealr.listings(((attributes->>'sde')::numeric)) WHERE category='Businesses';
+CREATE INDEX idx_listings_property_bedrooms ON dealr.listings(((attributes->>'bedrooms')::numeric)) WHERE category='Real Estate';
+CREATE TABLE dealr.saved(actor_id text NOT NULL REFERENCES dealr.actors(id),listing_id text NOT NULL REFERENCES dealr.listings(id),created_at text NOT NULL,PRIMARY KEY(actor_id,listing_id));
+CREATE TABLE dealr.leads(id text PRIMARY KEY,workspace text NOT NULL,listing_id text NOT NULL REFERENCES dealr.listings(id),buyer_id text NOT NULL REFERENCES dealr.actors(id),seller_id text NOT NULL REFERENCES dealr.actors(id),broker_id text REFERENCES dealr.actors(id),stage text NOT NULL DEFAULT 'NEW LEAD',created_at text NOT NULL,updated_at text NOT NULL,UNIQUE(listing_id,buyer_id));
+CREATE INDEX idx_leads_broker ON dealr.leads(broker_id);
+CREATE INDEX idx_leads_seller ON dealr.leads(seller_id);
+CREATE INDEX idx_leads_buyer ON dealr.leads(buyer_id);
+CREATE TABLE dealr.offers(id text PRIMARY KEY,lead_id text NOT NULL REFERENCES dealr.leads(id),buyer_id text NOT NULL REFERENCES dealr.actors(id),price bigint NOT NULL CHECK(price>0 AND price<=100000000000),cash bigint NOT NULL CHECK(cash>=0),financing bigint NOT NULL CHECK(financing>=0),days integer NOT NULL CHECK(days BETWEEN 1 AND 180),message text NOT NULL DEFAULT '',expires_at text,requested_date text NOT NULL DEFAULT '',status text NOT NULL DEFAULT 'SUBMITTED',request_id text NOT NULL,fingerprint text NOT NULL,created_at text NOT NULL,CHECK(cash+financing=price),UNIQUE(buyer_id,request_id));
+CREATE INDEX idx_offers_lead ON dealr.offers(lead_id);
+CREATE TABLE dealr.offer_history(id text PRIMARY KEY,offer_id text NOT NULL REFERENCES dealr.offers(id),actor_id text NOT NULL REFERENCES dealr.actors(id),action text NOT NULL,amount bigint,message text NOT NULL DEFAULT '',created_at text NOT NULL);
+CREATE INDEX idx_offer_history_offer ON dealr.offer_history(offer_id,created_at);
+CREATE TABLE dealr.messages(id text PRIMARY KEY,lead_id text NOT NULL REFERENCES dealr.leads(id),actor_id text NOT NULL REFERENCES dealr.actors(id),body text NOT NULL,created_at text NOT NULL);
+CREATE INDEX idx_messages_lead ON dealr.messages(lead_id,created_at);
+CREATE TABLE dealr.reads(actor_id text NOT NULL REFERENCES dealr.actors(id),lead_id text NOT NULL REFERENCES dealr.leads(id),last_read text NOT NULL,PRIMARY KEY(actor_id,lead_id));
+CREATE TABLE dealr.stage_events(id text PRIMARY KEY,lead_id text NOT NULL REFERENCES dealr.leads(id),actor_id text NOT NULL REFERENCES dealr.actors(id),from_stage text NOT NULL,to_stage text NOT NULL,created_at text NOT NULL);
+CREATE TABLE dealr.matches(wanted_id text NOT NULL REFERENCES dealr.listings(id),listing_id text NOT NULL REFERENCES dealr.listings(id),score integer NOT NULL,reasons jsonb NOT NULL,updated_at text NOT NULL,PRIMARY KEY(wanted_id,listing_id));
+CREATE TABLE dealr.broker_profiles(actor_id text PRIMARY KEY REFERENCES dealr.actors(id),bio text NOT NULL DEFAULT '',categories jsonb NOT NULL DEFAULT '[]',location text NOT NULL DEFAULT '',commission_bps integer NOT NULL DEFAULT 1000,photo text NOT NULL DEFAULT '',verification text NOT NULL DEFAULT 'Unverified');
+CREATE TABLE dealr.reports(id text PRIMARY KEY,actor_id text NOT NULL REFERENCES dealr.actors(id),workspace text NOT NULL,target_type text NOT NULL,target_id text NOT NULL,reason text NOT NULL,status text NOT NULL DEFAULT 'OPEN',created_at text NOT NULL);
+CREATE TABLE dealr.blocks(actor_id text NOT NULL REFERENCES dealr.actors(id),blocked_id text NOT NULL REFERENCES dealr.actors(id),PRIMARY KEY(actor_id,blocked_id));
+CREATE TABLE dealr.analytics(id text PRIMARY KEY,workspace text NOT NULL,actor_id text,event text NOT NULL,listing_id text,metadata jsonb NOT NULL DEFAULT '{}',created_at text NOT NULL);
+CREATE INDEX idx_analytics_workspace_event ON dealr.analytics(workspace,event,created_at);
+CREATE TABLE dealr.rate_limits(key text PRIMARY KEY,count integer NOT NULL,reset_at bigint NOT NULL);
+CREATE TABLE dealr.audit(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,workspace text NOT NULL,actor_id text NOT NULL,event text NOT NULL,entity_id text NOT NULL,payload jsonb NOT NULL,previous_hash text NOT NULL,hash text NOT NULL,created_at text NOT NULL);
+CREATE INDEX idx_audit_workspace_id ON dealr.audit(workspace,id);

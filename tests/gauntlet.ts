@@ -31,3 +31,24 @@ test('private demo workspaces cannot cross accounts or gain live broker access',
 test('messages, saved items, counters and stages survive new service instance and reauthentication',async()=>{const fresh=new DealrService(db),loggedIn=await fresh.identity('buyer','Buyer',[]);assert.equal(loggedIn.id,buyer.id);assert.ok((await fresh.state(loggedIn)).saved.includes(truckId));assert.equal((await fresh.conversation(loggedIn,p2pLead)).offers.find(o=>o.id===p2pOffer)?.status,'COUNTERED');assert.equal((await fresh.conversation(broker,businessLead)).lead.stage,'NEGOTIATING');assert.ok((await fresh.dashboard(loggedIn)).matches.length>0)});
 test('report, blocking, and moderation protect the communication flow',async()=>{await service.report(buyer,{targetType:'listing',targetId:truckId,reason:'Please review the sample ownership information.'});assert.ok((await service.admin(admin)).reports.length);await service.block(seller,{actorId:buyer.id,blocked:true});await failure(()=>service.message(buyer,p2pLead,{message:'Blocked message'}),403);await service.block(seller,{actorId:buyer.id,blocked:false});await service.message(buyer,p2pLead,{message:'Unblocked message'});});
 test('CSRF and size protections reject cross-origin or oversized writes',async()=>{assert.throws(()=>checkMutation(new Request('https://dealr.test/api/offers',{method:'POST',headers:{origin:'https://evil.test','content-type':'application/json'}})));assert.throws(()=>checkMutation(new Request('https://dealr.test/api/offers',{method:'POST',headers:{origin:'https://dealr.test','content-type':'application/json','content-length':'50000'}})));await assert.rejects(()=>body(new Request('https://dealr.test/api/offers',{method:'POST',headers:{origin:'https://dealr.test','content-type':'application/json'},body:'x'.repeat(33000)})));});
+
+test('structured controls cannot relax an explicit query budget or category',async()=>{
+ const {searchIntent}=await import('../lib/search');
+ assert.equal(searchIntent(new URLSearchParams({q:'Toyota truck under $30K',budget:'40000'})).budget,3000000);
+ assert.throws(()=>searchIntent(new URLSearchParams({q:'Toyota truck under $30K',category:'Businesses'})));
+ assert.throws(()=>searchIntent(new URLSearchParams({category:'Vehicles',attributes:'null'})));
+ assert.throws(()=>searchIntent(new URLSearchParams({page:'Infinity'})));
+ assert.throws(()=>searchIntent(new URLSearchParams({latitude:'NaN',longitude:'0',radius:'10'})));
+});
+test('preview category filters, verified state and wanted type are real constraints',async()=>{
+ const {previewSearch}=await import('../lib/preview');
+ const result=previewSearch(new URLSearchParams({category:'Vehicles',attributes:JSON.stringify({mileage:20000})}));
+ assert.ok(result.total>0);assert.ok(result.listings.every(l=>Number(l.attributes.mileage)<=20000));
+ assert.equal(previewSearch(new URLSearchParams({verified:'true'})).total,0);
+ assert.equal(previewSearch(new URLSearchParams({type:'Wanted'})).total,0);
+ assert.equal(previewSearch(new URLSearchParams({q:'laundromat'})).total,1);
+});
+test('mileage limits are not mistaken for a dollar budget',()=>{
+ const intent=parseQuery('truck under 70k miles');
+ assert.equal(intent.budget,undefined);assert.equal(intent.attributes.mileage.max,70000);
+});

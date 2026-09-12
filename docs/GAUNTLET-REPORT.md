@@ -15,6 +15,15 @@ The repository began at `4b023d1` with domain/service/database foundations, 16 a
 
 ## Unverified gates
 
+## Discovery milestone
+
+- Added category discovery, search results, dynamic filters, pagination/sorting, listing details, galleries/fallback illustrations, saved controls, listing questions, message/offer/report forms.
+- Preview and signed-in searches now share the same validated filter compiler. Explicit query constraints cannot be relaxed by looser form controls; malformed filters and invalid coordinates/page inputs fail cleanly.
+- Fixed mileage being interpreted as a dollar budget, laundromat search losing its keyword, and demo references to missing image files.
+- Production build passed. Targeted filter regressions were added alongside the original three transaction scenarios.
+
+## Remaining verification
+
 - Hosted Supabase signup, confirmation, login, logout, refresh, and revocation: no project credentials supplied.
 - Browser interaction, mobile widths, accessibility interaction, hydration/console checks, and visual polish: the existing AGENTS.md records a browser/mobile QA denial; this session does not bypass it.
 - Live LLM extraction, semantic embeddings, map view, and scalable matching performance are not yet implemented or verified.

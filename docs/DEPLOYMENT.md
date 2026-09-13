@@ -25,7 +25,7 @@ Supabase recommends transaction pooling for serverless runtimes and direct conne
 The login and signup pages show **Continue with Google** only when Supabase Auth reports the Google provider enabled. The server checks this and caches the answer for up to five minutes per instance. Otherwise the button stays hidden and email sign-in is unchanged. The flow is Supabase's server-side PKCE flow: `/auth/google` starts it and the existing `/auth/callback` exchanges the code. Supabase links a Google identity to an existing account with the same verified email.
 
 1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), configure the OAuth consent screen (External, app name DEALR, your support email), then create an **OAuth client ID** of type **Web application**.
-2. Add the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`, using the DEALR Supabase project's actual reference. This flow needs no JavaScript origins.
+2. Add the authorized redirect URI `https://hfkuiedcutulobirfoir.supabase.co/auth/v1/callback` (the DEALR Supabase project). This flow needs no JavaScript origins.
 3. In Supabase, open Authentication → Sign In / Providers → Google, enable it, and paste the client ID and client secret. Keep the secret out of Git and chat.
 4. In Supabase Authentication → URL Configuration, set the Site URL to `https://dealr-mu.vercel.app` (any path on that host is then allowed) and add `https://*-thereal-baitjets-projects.vercel.app/**` for preview deployments. Unlisted redirect targets fall back to the Site URL.
 5. Redeploy after adding the Supabase variables in Vercel. `NEXT_PUBLIC_` values are compiled into the build.
@@ -57,8 +57,17 @@ Run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`
 ## Current external status
 
 - Supabase plugin: connected, confirmed by the user and plugin state.
-- Supabase project changes: none. The connected organization has no DEALR project; the user deferred creating one on 2026-09-12.
-- Google OAuth client: not created yet, so the Google button stays hidden on hosted deployments.
-- Vercel: project `dealr` (team `thereal-baitjets-projects`) is connected to GitHub `thereal-baitjet/DEALR`. Pushes to `main` deploy production at `dealr-mu.vercel.app`; other branches deploy previews. The production domain is public. Standard Protection (Vercel Authentication) covers only preview and per-deployment URLs. No environment variables are set yet.
-- Hosted deployments: production `dealr-mu.vercel.app` (commit `f8e6a59`) publicly serves `/`, `/login`, and `/marketplace`. `/api/state` reports account and Google sign-in unavailable, and `/auth/google` returns to `/login?error=google`. The earlier preview `dealr-25dilan69-thereal-baitjets-projects.vercel.app` (commit `e0bc053`) returned 200 for the catalog pages and APIs through authenticated `vercel curl`; account APIs returned 503 as designed without a database.
+- Supabase project: `dealr` (ref `hfkuiedcutulobirfoir`, us-east-1, free plan), created 2026-09-12 with the CLI. Migrations `0001_core.sql` and `0002_vectors.sql` were applied through the session pooler. The database password and connection strings live in the git-ignored `.env.supabase`. Next.js does not load that file, so local builds and tests stay isolated from the hosted database.
+- Supabase advisors: RLS is disabled on the 19 `dealr` tables (flagged critical), and `vector` is installed in `public` (warning). The `anon` and `authenticated` roles have no usage on the `dealr` schema. The Data API rejects that schema (`PGRST106`) and GraphQL is disabled, so the publishable key cannot reach these tables. Enabling RLS without policies is optional defense in depth: the app connects as the owning `postgres` role, which bypasses RLS.
+- Supabase Auth URL configuration: the Site URL and redirect allow-list are not set yet. Until they are, confirmation emails link to the default Site URL.
+- Google OAuth client: not created yet, so the Google button stays hidden.
+- Vercel: project `dealr` (team `thereal-baitjets-projects`) is connected to GitHub `thereal-baitjet/DEALR`. Pushes to `main` deploy production at `dealr-mu.vercel.app`; other branches deploy previews. The production domain is public. Standard Protection (Vercel Authentication) covers only preview and per-deployment URLs.
+- Production environment variables: `DATABASE_URL` (transaction pooler), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `DEALR_DEMO_MODE=true`, and `DEALR_DEMO_SECRET`. Previews have none, so they stay read-only and isolated from production data.
+- Hosted verification: production `dealr-mu.vercel.app` was rebuilt from `484cdcc` with those variables and checked over HTTP.
+  - `/api/state` reports accounts and the demo available and Google unavailable.
+  - The anonymous marketplace returns 200 with 0 live listings.
+  - A sign-in with unknown credentials returns Supabase's 400 through the origin check.
+  - A demo session starts, reads 32 fictional listings from the hosted database, and logs out.
+  - `/auth/google` returns to `/login?error=google`.
+- Not yet verified on the hosted site: a real signup, email confirmation, and Google sign-in.
 - Browser/mobile QA: existing repository restriction remains in force.

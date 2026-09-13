@@ -61,3 +61,10 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Typecheck, production build, **24 automated Gauntlet checks**, **12 HTTP checks**, and **5 local serverless-preview checks** pass. The two new preview checks cover the hidden/unavailable state and, against a stand-in Supabase settings endpoint, the authorize redirect, PKCE challenge, verifier cookie, application-origin callback, and rewriting of an off-site `next` to `/dashboard`.
 - The user requested this change be pushed to `main` and deployed. Vercel is now connected to GitHub, so `main` deploys production. Production `dealr-mu.vercel.app` is public. At `f8e6a59` it was checked over HTTP only: public pages return 200, `/api/state` reports Google unavailable, and `/auth/google` returns to the login page.
 - Not verified: a real Google consent screen and Supabase code exchange. No DEALR Supabase project or Google OAuth client exists yet (the user deferred Supabase creation), so hosted deployments keep the button hidden.
+
+## Hosted Supabase milestone — 2026-09-12
+
+- The user approved creating the Supabase project and switching production to it with the interactive demo enabled. Project `dealr` (`hfkuiedcutulobirfoir`) exists, both migrations are applied, and production has the database, auth, and demo variables. Previews remain without them.
+- Verified over HTTP against `dealr-mu.vercel.app`: the state flags, the empty live marketplace, Supabase-backed rejection of unknown credentials, a hosted demo session that seeds and reads 32 fictional listings and then logs out, and the Google fallback redirect.
+- Not verified: real signup, email confirmation, session refresh/revocation, Google sign-in, and browser/mobile behavior. The Supabase Site URL, redirect allow-list, and Google provider still need to be configured.
+- Supabase's security advisor flags RLS as disabled on all `dealr` tables. Those tables are not reachable through the Data API or with the publishable key (no schema usage; `PGRST106`). Whether to enable RLS is left to the user.

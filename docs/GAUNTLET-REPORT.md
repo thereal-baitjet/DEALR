@@ -4,6 +4,15 @@ Status: **IN PROGRESS — progress preview authorized; full MVP not certified.**
 
 The repository began at `4b023d1` with domain/service/database foundations, 16 automated tests, and no runnable application. CORE.md is unchanged.
 
+## Current checkpoint — 2026-09-13
+
+- Synced all 12 commits through `c53b666`, including the hosted Supabase, Google sign-in, JSON repair, privacy page, and baitjet.com setup.
+- Applied the requested **DEALR — a Baitjet company** identity to the shared header/footer, application metadata, privacy introduction, and README. The existing marketplace tagline remains **Find it. List it. Deal it.**
+- Production build, **26 automated Gauntlet checks**, **12 HTTP checks**, and **5 local preview checks** pass. Production HTML contains both accessible brand links and the company label on the home, marketplace, login, and privacy pages. This is markup verification, not visual/browser QA.
+- Supabase reports `dealr` (`hfkuiedcutulobirfoir`) as `ACTIVE_HEALTHY`. All three entries in `dealr.schema_migrations` match the SHA-256 hashes of the committed migrations. The Supabase CLI migration history is empty because this application uses its own migration ledger.
+- GitHub's Vercel status for `c53b666` reports a completed deployment. The configured production destination is **https://baitjet.com**. Direct Vercel project reads returned 403 in this session; public HTTP checks were blocked by the runtime's network proxy. Hosted behavior has not been re-certified here.
+- Remaining gates: real signup/email confirmation, completed Google consent/code exchange, session refresh/revocation, browser/mobile/accessibility interaction, live LLM/embeddings, maps, and matching at scale. No full MVP score or completion claim is made.
+
 ## Foundation milestone
 
 - 16/16 existing PostgreSQL-backed automated Gauntlet tests passed on 2026-09-12.
@@ -36,14 +45,14 @@ The repository began at `4b023d1` with domain/service/database foundations, 16 a
 - Supabase plugin installation/connection is confirmed. Its project-management tools have not been exposed to this running session, so no hosted database change or authentication validation is claimed.
 - The user explicitly requested a Vercel progress deployment during this session. That authorizes publishing an in-progress preview; it does not certify the full MVP or clear the existing browser/mobile restriction. Vercel access is still pending.
 
-## Remaining external gates
+## Gate checkpoint before hosted setup — 2026-09-12
 
 - Hosted Supabase signup, confirmation, login, logout, refresh, and revocation: no hosted project credentials configured.
 - Browser interaction, mobile widths, accessibility interaction, hydration/console checks, and visual polish: the existing AGENTS.md records a browser/mobile QA denial; this session does not bypass it.
 - Live LLM extraction, semantic embeddings, map view, and scalable matching performance are not yet implemented or verified.
 - Full CORE.md completion scores are withheld until there is supporting evidence. Service-level passes are not browser end-to-end passes.
 
-No hosted URL has been verified. The user authorized an in-progress Vercel preview; full MVP release remains gated by CORE.md's exit criteria.
+At this earlier checkpoint, no hosted URL had been verified. Later hosted milestones are recorded below; full MVP release remains gated by CORE.md's exit criteria.
 
 
 ## Deployment preparation milestone — 2026-09-12

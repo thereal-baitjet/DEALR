@@ -1,5 +1,7 @@
 # DEALR
 
+**a Baitjet company** · [baitjet.com](https://baitjet.com)
+
 **Find it. List it. Deal it.** One marketplace engine across goods, vehicles, real estate, businesses, services, and equipment. [CORE.md](CORE.md) is the product specification.
 
 ## Run locally
@@ -44,13 +46,13 @@ npm run typecheck
 npm run build
 ```
 
-The automated Gauntlet uses an actual PostgreSQL engine with pgvector. The HTTP checks run the compiled application with isolated test data. Preview checks exercise local Vercel-like configuration without external credentials. See [docs/GAUNTLET-REPORT.md](docs/GAUNTLET-REPORT.md) for evidence and unverified gates. Browser/mobile QA remains restricted by the repository instructions. No hosted deployment or full Gauntlet pass is claimed.
+The automated Gauntlet uses an actual PostgreSQL engine with pgvector. The HTTP checks run the compiled application with isolated test data. Preview checks exercise local Vercel-like configuration without external credentials. See [docs/GAUNTLET-REPORT.md](docs/GAUNTLET-REPORT.md) for evidence and unverified gates. Browser/mobile QA remains restricted by the repository instructions. The hosted progress build is not a full Gauntlet pass.
 
 ## Milestone status
 
 Implemented: universal discovery and filters, listing details and fact-based assistance, seller drafts/review/publishing, wanted requests/matches, buyer/seller dashboards, preferences, persistent conversations, offers and counteroffers, broker directory/pipeline/copilot, reports/blocking, and administrator moderation. Optional demo accounts allow buyer, seller, and broker views inside the same private fictional marketplace.
 
-The Vercel progress preview is explicitly authorized by the user. Setup is documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Supabase connection is confirmed, but hosted project configuration still needs to be performed when its project tools are available. Vercel account connection is pending.
+The authorized progress build is hosted on [baitjet.com](https://baitjet.com). Vercel is connected to this repository; pushes to `main` deploy production. Supabase project `dealr` provides PostgreSQL and authentication, including Google sign-in. Previews remain isolated from production data. Configuration and hosted checks are documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Completing real signup, Google consent/code exchange, and session refresh/revocation remains unverified.
 
 AI uses explicit, deterministic fallback rules. No live LLM or embedding pipeline is currently active. Payments, escrow, legally binding agreements, and blockchain settlement are not implemented.
 

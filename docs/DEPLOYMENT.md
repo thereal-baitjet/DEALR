@@ -1,5 +1,7 @@
 # DEALR progress deployment
 
+**DEALR — a Baitjet company** is hosted at **https://baitjet.com**. `www.baitjet.com` and the legacy Vercel production alias redirect there. Keep this exact domain for production authentication and origin settings.
+
 The user authorized an in-progress Vercel deployment on 2026-09-12 and requested Supabase for persistent data and authentication. This preview is for reviewing current progress; it is not a claim that CORE.md's full exit criteria have passed.
 
 ## Prepared code
@@ -74,3 +76,9 @@ Run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`
 - Google flow check: after the provider was enabled, `/api/state` reported Google available within about a minute. `/auth/google` redirects to Supabase's authorize endpoint (provider `google`, PKCE, callback `https://dealr-mu.vercel.app/auth/callback?next=%2Fdashboard`), which redirects to Google with the DEALR client ID and the Supabase callback.
 - Not yet verified on the hosted site: completing a Google sign-in (consent and code exchange), a real signup, and email confirmation.
 - Browser/mobile QA: existing repository restriction remains in force.
+
+### Connection check — 2026-09-13
+
+Supabase reports the DEALR project healthy. Its application migration ledger (`dealr.schema_migrations`) contains `0001`, `0002`, and the hosted JSON repair `0003`, each with a hash matching the repository. This ledger is separate from the Supabase CLI migration history.
+
+GitHub's Vercel status confirms `c53b666` deployed successfully. This session cannot independently inspect the Vercel project (403) or fetch the public site through its network proxy, so that status establishes deployment completion, not hosted functional QA. Keep the completed Google sign-in and session lifecycle checks open.

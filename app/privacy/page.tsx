@@ -7,7 +7,7 @@ const contact = 'info@santosautomation.com';
 // Describes what the app actually stores and shares. Update it whenever data handling changes.
 export default function Page() {
   return <div className="container trust-page">
-    <div className="page-heading"><div><span className="eyebrow">PRIVACY POLICY</span><h1>Your information, handled plainly.</h1><p>Effective September 12, 2026. This policy explains what DEALR collects, why, and the choices you have.</p></div></div>
+    <div className="page-heading"><div><span className="eyebrow">PRIVACY POLICY</span><h1>Your information, handled plainly.</h1><p>Effective September 12, 2026. This policy explains what DEALR, a Baitjet company, collects, why, and the choices you have.</p></div></div>
     <div className="stack section">
       <section className="panel"><h2>What we collect</h2>
         <p><strong>Account details.</strong> When you create an account, we receive your email address and name. If you sign in with Google, Google shares your name, email address, and profile picture with us. Passwords are stored by our sign-in provider, Supabase, not in DEALR’s database.</p>

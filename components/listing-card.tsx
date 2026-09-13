@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, MapPin, ShoppingBag, Car, House, BriefcaseBusiness, Wrench, Tractor, ArrowUpRight, ImageOff } from 'lucide-react';
+import { Heart, MapPin, ShoppingBag, Car, House, BriefcaseBusiness, Wrench, Tractor, ArrowUpRight, ImageOff, Plus } from 'lucide-react';
 import type { ListingResult } from '@/lib/contracts';
 import { dollars } from '@/lib/domain';
 import { request } from '@/lib/client';
@@ -19,6 +19,10 @@ export function SaveButton({ listing, text = false }: { listing: ListingResult; 
   const saved = state.saved.includes(listing.id);
   async function toggle() { if (!state.actor) { router.push('/login?next=' + encodeURIComponent('/listing/' + listing.id)); return; } setBusy(true); try { await request(`listings/${listing.id}/save`, { saved: !saved }); await refresh(); notify(saved ? 'Removed from saved items.' : 'Saved to your DEALR.'); } catch (error) { notify((error as Error).message); } finally { setBusy(false); } }
   return <button type="button" className={text ? 'button button-secondary' : 'save-button'} aria-label={saved ? 'Unsave ' + listing.title : 'Save ' + listing.title} aria-pressed={saved} disabled={busy} onClick={() => void toggle()}><Heart size={17} fill={saved ? 'currentColor' : 'none'} />{text && (saved ? 'Saved' : 'Save')}</button>;
+}
+// Invites sellers while the live marketplace is small. Deliberately not a listing: no price, location, or save button.
+export function ListPromptCard() {
+  return <article className="listing-card"><div className="listing-cover"><Link href="/sell" tabIndex={-1} aria-hidden="true"><div className="listing-visual art-marketplace"><div className="art-orbit" /><div className="art-block"><Plus strokeWidth={1} size={80} /></div><span className="art-label">YOUR LISTING HERE</span></div></Link><div className="cover-badges"><span className="badge badge-white">We need listings</span></div></div><div className="listing-info"><div className="listing-location"><Plus size={12} />Open to every category</div><Link className="listing-title" href="/sell">List an item you want to sell now.</Link><p className="listing-attributes">Anything from a sofa to a small business.</p><div className="listing-price"><strong>List something</strong><ArrowUpRight size={17} /></div></div></article>;
 }
 export function ListingCard({ listing, showMatch = false }: { listing: ListingResult; showMatch?: boolean }) {
   const main = Object.entries(listing.attributes).filter(([key]) => ['year', 'mileage', 'bedrooms', 'bathrooms', 'sqft', 'annual_revenue', 'sde', 'brand', 'service_area', 'hours'].includes(key)).slice(0, 2);

@@ -74,7 +74,7 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - At the user's request, the Google OAuth client and Supabase configuration were set up through the user's browser. The client is `DEALR web` in Google Cloud project `dealr-508500`; the Supabase Google provider, Site URL, and preview redirect allow-list are set.
 - Verified over HTTP: production reports Google available, and `/auth/google` redirects through Supabase's PKCE authorize endpoint to Google with the correct client ID, callback, and scopes.
 - Not verified: a completed Google consent and code exchange. The Google app is still in Testing mode, so only listed test users can sign in. Publishing is blocked until the consent-screen Branding is complete, which likely needs a privacy policy page DEALR does not have.
-- The client secret appeared in automation tool output during setup (Google embeds it in the copy button's accessible label). Rotating it is recommended.
+- The client secret appeared in automation tool output during setup (Google embeds it in the copy button's accessible label). It was rotated the same day. A new secret was added in Google and saved in Supabase, checked by length and prefix without reading it, and the exposed secret was disabled in Google.
 
 ## Listing page and photo link fixes — 2026-09-12
 

@@ -83,3 +83,10 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Photo links: the editor adds `https://` to bare links, upgrades `http://`, and explains an unusable line before review or save. API validation errors now name "Photo N" instead of `images.N`. File upload is still not implemented.
 - Typecheck, production build, **26 automated checks**, **12 HTTP checks**, and **5 preview checks** pass. The new checks cover the JSON handler, the `0003` repair, and photo link handling.
 - Remaining gaps: no automated test runs postgres.js against a real Postgres server, and browser rendering is still not covered. Hosted verification follows the deploy and the `0003` run.
+
+## Hosted repair and privacy milestone — 2026-09-12
+
+- The JSON fix was deployed (`fde29e7`), and migration `0003` ran on the hosted database. No string-encoded jsonb values remain across 98 listings, 3 broker profiles, 25 analytics events, and 2 audit records. Hosted listing APIs now return arrays and objects for a demo listing and for the user's listing.
+- Added `/privacy` (`3f1b72c`). It describes the data DEALR actually stores, its essential cookies, and the Supabase, Vercel, and Google services it uses. The user chose info@santosautomation.com as the contact and chose to name only "DEALR" as operator. The page is linked from the footer and was verified publicly (200).
+- Google Branding now lists the home page and privacy policy, with `dealr-mu.vercel.app` as an authorized domain, and the Google app is published (In production).
+- Not verified: a completed Google sign-in, and browser rendering of the listing and privacy pages.

@@ -59,8 +59,9 @@ Run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`
 - Supabase plugin: connected, confirmed by the user and plugin state.
 - Supabase project: `dealr` (ref `hfkuiedcutulobirfoir`, us-east-1, free plan), created 2026-09-12 with the CLI. Migrations `0001_core.sql` and `0002_vectors.sql` were applied through the session pooler. The database password and connection strings live in the git-ignored `.env.supabase`. Next.js does not load that file, so local builds and tests stay isolated from the hosted database.
 - Supabase advisors: RLS is disabled on the 19 `dealr` tables (flagged critical), and `vector` is installed in `public` (warning). The `anon` and `authenticated` roles have no usage on the `dealr` schema. The Data API rejects that schema (`PGRST106`) and GraphQL is disabled, so the publishable key cannot reach these tables. Enabling RLS without policies is optional defense in depth: the app connects as the owning `postgres` role, which bypasses RLS.
-- Supabase Auth URL configuration: the Site URL and redirect allow-list are not set yet. Until they are, confirmation emails link to the default Site URL.
-- Google OAuth client: not created yet, so the Google button stays hidden.
+- Supabase Auth URL configuration: Site URL `https://dealr-mu.vercel.app`; redirect allow-list `https://*-thereal-baitjets-projects.vercel.app/**`.
+- Google sign-in: Google Cloud project `dealr-508500` has the web OAuth client `DEALR web` (client ID `272557735544-6nr12uubebb2d1vsfserbvhknklqc672.apps.googleusercontent.com`). Its only redirect URI is the Supabase callback, and it uses the `openid`, `email`, and `profile` scopes. The Supabase Google provider is enabled with that client.
+- Google publishing: the Google app is in **Testing**, so only the test users listed on the Google Auth Platform Audience page can sign in. Google keeps Publish disabled until the Branding page is complete. Its home page, privacy policy, and terms links are empty, and DEALR has no privacy policy page yet.
 - Vercel: project `dealr` (team `thereal-baitjets-projects`) is connected to GitHub `thereal-baitjet/DEALR`. Pushes to `main` deploy production at `dealr-mu.vercel.app`; other branches deploy previews. The production domain is public. Standard Protection (Vercel Authentication) covers only preview and per-deployment URLs.
 - Production environment variables: `DATABASE_URL` (transaction pooler), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `DEALR_DEMO_MODE=true`, and `DEALR_DEMO_SECRET`. Previews have none, so they stay read-only and isolated from production data.
 - Hosted verification: production `dealr-mu.vercel.app` was rebuilt from `484cdcc` with those variables and checked over HTTP.
@@ -69,5 +70,6 @@ Run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`
   - A sign-in with unknown credentials returns Supabase's 400 through the origin check.
   - A demo session starts, reads 32 fictional listings from the hosted database, and logs out.
   - `/auth/google` returns to `/login?error=google`.
-- Not yet verified on the hosted site: a real signup, email confirmation, and Google sign-in.
+- Google flow check: after the provider was enabled, `/api/state` reported Google available within about a minute. `/auth/google` redirects to Supabase's authorize endpoint (provider `google`, PKCE, callback `https://dealr-mu.vercel.app/auth/callback?next=%2Fdashboard`), which redirects to Google with the DEALR client ID and the Supabase callback.
+- Not yet verified on the hosted site: completing a Google sign-in (consent and code exchange), a real signup, and email confirmation.
 - Browser/mobile QA: existing repository restriction remains in force.

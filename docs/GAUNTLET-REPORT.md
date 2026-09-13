@@ -68,3 +68,10 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Verified over HTTP against `dealr-mu.vercel.app`: the state flags, the empty live marketplace, Supabase-backed rejection of unknown credentials, a hosted demo session that seeds and reads 32 fictional listings and then logs out, and the Google fallback redirect.
 - Not verified: real signup, email confirmation, session refresh/revocation, Google sign-in, and browser/mobile behavior. The Supabase Site URL, redirect allow-list, and Google provider still need to be configured.
 - Supabase's security advisor flags RLS as disabled on all `dealr` tables. Those tables are not reachable through the Data API or with the publishable key (no schema usage; `PGRST106`). Whether to enable RLS is left to the user.
+
+## Google provider milestone — 2026-09-12
+
+- At the user's request, the Google OAuth client and Supabase configuration were set up through the user's browser. The client is `DEALR web` in Google Cloud project `dealr-508500`; the Supabase Google provider, Site URL, and preview redirect allow-list are set.
+- Verified over HTTP: production reports Google available, and `/auth/google` redirects through Supabase's PKCE authorize endpoint to Google with the correct client ID, callback, and scopes.
+- Not verified: a completed Google consent and code exchange. The Google app is still in Testing mode, so only listed test users can sign in. Publishing is blocked until the consent-screen Branding is complete, which likely needs a privacy policy page DEALR does not have.
+- The client secret appeared in automation tool output during setup (Google embeds it in the copy button's accessible label). Rotating it is recommended.

@@ -81,7 +81,7 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - At the user's request, DEALR replaced the ChatGPT-hosted BaitJet Arcade on baitjet.com. The domains were attached to the Vercel project, and DNS was switched at Namecheap in the user's browser. Email forwarding records were left unchanged.
 - Verified by pinning requests to Vercel's IP while local DNS caught up: the home page serves DEALR, `www` and `dealr-mu.vercel.app` redirect to `https://baitjet.com`, a Let's Encrypt certificate is issued, and a demo sign-in from the baitjet.com origin succeeds after the rebuild. `/auth/google` requests the callback `https://baitjet.com/auth/callback`.
 - Google Branding now uses baitjet.com links and domain.
-- Pending: the Supabase Site URL change to `https://baitjet.com`. Until it's made, Supabase rejects the baitjet.com callback and returns Google sign-ins to the old address. Not verified: a completed Google sign-in on baitjet.com.
+- The Supabase Site URL is now `https://baitjet.com`, so Supabase accepts the baitjet.com callback. Not verified: a completed Google sign-in on baitjet.com.
 
 ## Listing page and photo link fixes — 2026-09-12
 

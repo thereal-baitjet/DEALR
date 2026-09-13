@@ -36,7 +36,7 @@ try {
   console.log('PASS serverless preview disables unavailable account/demo activity');
   const search = await (await api('marketplace?q=' + encodeURIComponent('Toyota truck under $30K'))).json();
   assert.ok(search.total > 0); assert.ok(search.listings.every(listing => listing.price <= 3000000));
-  for (const route of ['/', '/marketplace', '/brokers', '/login', '/sell', '/dashboard', '/messages', '/broker', '/trust']) assert.equal((await fetch(address + route)).status, 200, route);
+  for (const route of ['/', '/marketplace', '/brokers', '/login', '/sell', '/dashboard', '/messages', '/broker', '/trust', '/privacy']) assert.equal((await fetch(address + route)).status, 200, route);
   assert.deepEqual(await (await api('brokers')).json(), []);
   console.log('PASS preview catalog, search, route shells, and empty broker directory');
   const answer = await api('listings/sample-tacoma/ai', { question: 'Has it ever been in an accident?' });

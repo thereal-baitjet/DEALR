@@ -34,4 +34,6 @@ Browser/mobile interaction QA remains unverified under the existing `AGENTS.md` 
 
 For cookie changes run `npm test`, `npm run build`, `npm run test:http`, and `npm run test:preview`. The HTTP suites use isolated local data and must not be pointed at the hosted database.
 
-After pushing, verify the Vercel status on the exact GitHub commit and check the public `/cookies`, `/privacy`, and `/api/cookie-consent` endpoints. Direct project inspection through the connected Vercel account returned 403 in this session; the GitHub deployment integration and public production HTTP remain available.
+Cookie controls were released in commit `96f4f8bf8a5a4077316d04da58859c9c627e096d`. Vercel reported that exact commit deployed successfully. Eight production HTTP checks passed at 2026-09-13T14:38:16.884385+00:00, covering the live policy pages, footer controls, default-off behavior, acceptance, rejection, cookie security attributes, Global Privacy Control, and origin rejection using an isolated visitor cookie jar.
+
+For future releases, verify the Vercel status on the exact pushed commit and the public endpoints. Direct project inspection through the connected Vercel account returned 403 in this session; the GitHub deployment integration and public production HTTP remain available.

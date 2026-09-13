@@ -14,7 +14,8 @@ The repository began at `4b023d1` with domain/service/database foundations, 16 a
 - `/cookies` inventories actual sign-in, verifier, demo, and preference cookies. `/privacy` distinguishes optional analytics from necessary marketplace records. There is no new analytics SDK, advertising tracker, dependency, migration, or environment variable. The seller dashboard explains that recorded views exclude visitors who decline analytics.
 - The control design follows the [ICO guidance on clear cookie information, active choice, and disabling optional collection](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guide-to-pecr/cookies-and-similar-technologies/). This checkpoint does not certify jurisdiction-wide legal compliance.
 - Source review covers dialog labels, keyboard controls, focus return, and mobile styles. Browser/mobile interaction QA remains unverified under the repository restriction. These local tests do not establish hosted Google sign-in or full MVP completion.
-- Production release uses the existing `main` → Vercel integration at https://baitjet.com. Confirm the exact pushed commit’s Vercel status and public policy/consent endpoints when releasing.
+- Production release: `96f4f8bf8a5a4077316d04da58859c9c627e096d` was committed and pushed to `main`. GitHub reports its [Vercel deployment](https://vercel.com/thereal-baitjets-projects/dealr/9QKP8ToPk5Urh55GfgFKC3pSruvt) successful at https://baitjet.com.
+- **8 production HTTP checks passed** at 2026-09-13T14:38:16.884385+00:00: published cookie policy and footer controls, updated privacy links, anonymous default-off with no premature cookie, accepted choice persisted with secure cookie attributes, Global Privacy Control override, persisted withdrawal, and foreign-origin rejection. These checks used an isolated visitor cookie jar and did not create accounts or mutate hosted marketplace data.
 
 ## Authentication Gauntlet checkpoint — 2026-09-13
 

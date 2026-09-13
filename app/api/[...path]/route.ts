@@ -6,6 +6,7 @@ import { AppError, emptyProfile, groundedAnswer } from '@/lib/domain';
 import { body } from '@/lib/http';
 import { previewListing, previewSearch } from '@/lib/preview';
 import { applicationOrigin } from '@/lib/origin';
+import { cookieConsentState } from '@/lib/cookie-consent';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,7 @@ async function handle(request: Request, context: Context) {
       } else {
         const api = await service();
         const id = path[1]?.startsWith('sample-') && actor?.workspace.startsWith('demo-') ? actor.workspace + '-' + path[1] : path[1];
-        if (route === 'marketplace' && method === 'GET') result = await api.search(actor, url.searchParams);
+        if (route === 'marketplace' && method === 'GET') result = await api.search(actor, url.searchParams, undefined, cookieConsentState(request.headers).analyticsAllowed);
         else if (route === 'brokers' && method === 'GET') result = await api.brokers(actor);
         else if (route === 'dashboard' && method === 'GET') result = await api.dashboard(actor);
         else if (route === 'broker' && method === 'GET') result = await api.dashboard(actor, true);
@@ -63,7 +64,7 @@ async function handle(request: Request, context: Context) {
         else if (route === 'blocks' && method === 'POST') result = await api.block(actor, input);
         else if (route === 'extract' && method === 'POST') result = await api.extract(actor, input);
         else if (route === 'listings' && method === 'POST') result = await api.saveListing(actor, input);
-        else if (path[0] === 'listings' && id && path.length === 2 && method === 'GET') result = await api.listing(actor, id, url.searchParams.get('track') === 'true');
+        else if (path[0] === 'listings' && id && path.length === 2 && method === 'GET') result = await api.listing(actor, id, url.searchParams.get('track') === 'true' && cookieConsentState(request.headers).analyticsAllowed);
         else if (path[0] === 'listings' && id && path.length === 2 && method === 'POST') result = await api.saveListing(actor, input, id);
         else if (path[0] === 'listings' && id && path.length === 3 && method === 'POST') {
           if (path[2] === 'save') result = await api.saved(actor, id, input);

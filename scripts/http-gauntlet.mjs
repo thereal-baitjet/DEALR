@@ -40,6 +40,30 @@ function input(listing, changes = {}) {
 try {
   await start();
   const anonymous = jar(), buyer = jar(), attacker = jar();
+  await check('cookie choices work anonymously, persist, and reject invalid or foreign writes', async () => {
+    const response = await fetch(origin + '/api/cookie-consent');
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.headers.getSetCookie(), [], 'No consent cookie is set before a choice');
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+    assert.deepEqual(await response.json(), { consent: null, analyticsAllowed: false, globalPrivacyControl: false });
+    const visitor = jar();
+    await api(visitor, 'cookie-consent', { version: 1, analytics: false }, 403, { Origin: 'https://evil.example' });
+    await api(visitor, 'cookie-consent', { version: 1, analytics: 'true' }, 400);
+    await api(visitor, 'cookie-consent', { version: 0, analytics: true }, 400);
+    const saved = await api(visitor, 'cookie-consent', { version: 1, analytics: false });
+    assert.deepEqual(await api(visitor, 'cookie-consent'), saved);
+    const accepted = await api(visitor, 'cookie-consent', { version: 1, analytics: true });
+    assert.equal(accepted.analyticsAllowed, true);
+    assert.equal((await api(visitor, 'cookie-consent', undefined, 200, { 'Sec-GPC': '1' })).analyticsAllowed, false);
+    const gpc = await api(visitor, 'cookie-consent', { version: 1, analytics: true }, 200, { 'Sec-GPC': '1' });
+    assert.equal(gpc.consent.analytics, false);
+    assert.equal((await api(visitor, 'cookie-consent')).analyticsAllowed, false);
+    const policy = await fetch(origin + '/cookies');
+    assert.equal(policy.status, 200);
+    const html = await policy.text();
+    for (const copy of ['dealr-cookie-consent', '180 days', 'Change cookie preferences', 'Cookie settings', 'Global Privacy Control']) assert.ok(html.includes(copy), copy);
+    assert.equal((await fetch(origin + '/privacy')).status, 200);
+  });
   await check('public route shells and preview catalog', async () => {
     for (const route of ['/', '/marketplace', '/login', '/signup', '/sell', '/dashboard', '/listing/sample-tacoma', '/messages', '/messages/missing', '/broker', '/brokers', '/admin', '/trust']) assert.equal((await fetch(origin + route)).status, 200, route);
     const results = await api(anonymous, 'marketplace?q=' + encodeURIComponent('Toyota truck under $30K'));
@@ -64,6 +88,26 @@ try {
     await api(buyer, 'auth/demo', { role: 'admin' }, 400);
   });
   const samples = (await api(seller, 'marketplace?category=Vehicles')).listings;
+  await check('server consent gates listing analytics even when track=true is requested', async () => {
+    const visitor = new Map(buyer);
+    const listingId = samples[0].id;
+    const views = async () => Number((await api(seller, 'dashboard')).counts.find(item => item.event === 'listing_viewed')?.count || 0);
+    const initial = await views();
+    await api(visitor, 'listings/' + listingId + '?track=true');
+    assert.equal(await views(), initial);
+    await api(visitor, 'cookie-consent', { version: 1, analytics: true });
+    await api(visitor, 'listings/' + listingId + '?track=true');
+    assert.equal(await views(), initial + 1);
+    await api(visitor, 'listings/' + listingId + '?track=true', undefined, 200, { 'Sec-GPC': '1' });
+    assert.equal(await views(), initial + 1);
+    await api(visitor, 'cookie-consent', { version: 1, analytics: false });
+    await api(visitor, 'listings/' + listingId + '?track=true');
+    assert.equal(await views(), initial + 1);
+    assert.equal((await api(visitor, 'state')).actor.id, buyerState.actor.id, 'Rejecting analytics keeps sign-in intact');
+    visitor.set('dealr-cookie-consent', encodeURIComponent(JSON.stringify({ version: 1, analytics: true, updatedAt: Date.now() - 181 * 86400_000 })));
+    await api(visitor, 'listings/' + listingId + '?track=true');
+    assert.equal(await views(), initial + 1);
+  });
   const template = samples.find(listing => listing.attributes.model === 'Tacoma' && listing.price === 2950000);
   await check('seller draft, publish, edit, unpublish and republish through HTTP', async () => {
     truck = await api(seller, 'listings', input(template, { title: '', description: '', price: '', location: '', status: 'draft' }));

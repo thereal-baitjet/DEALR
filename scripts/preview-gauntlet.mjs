@@ -62,6 +62,13 @@ const auth = createServer(async (request, response) => {
 });
 try {
   await start(unconfigured);
+  const cookieChoice = await api('cookie-consent', { version: 1, analytics: false });
+  assert.equal(cookieChoice.status, 200, 'Consent works without database/auth configuration');
+  const preferenceCookie = setCookies(cookieChoice).find(cookie => cookie.startsWith('dealr-cookie-consent='));
+  assert.ok(preferenceCookie);
+  for (const flag of [/HttpOnly/i, /Secure/i, /SameSite=Lax/i, /Path=\//i, /Max-Age=15552000/i]) assert.match(preferenceCookie, flag);
+  assert.equal((await api('cookie-consent', { version: 1, analytics: true }, 'https://evil.vercel.app')).status, 403);
+  console.log('PASS consent cookies are Secure, HttpOnly, scoped, and origin-checked on Vercel');
   const state = await (await api('state')).json();
   assert.equal(state.preview, true); assert.equal(state.demoAvailable, false); assert.equal(state.authAvailable, false);
   console.log('PASS serverless preview disables unavailable account/demo activity');
@@ -125,6 +132,6 @@ try {
   const rejected = await fetch(address + '/auth/callback?code=invalid-code&next=/messages', { redirect: 'manual', headers: { Cookie: requestCookies(failedBegin) + '; ' + demoCookie } });
   assert.equal(rejected.headers.get('location'), hostedOrigin + '/login?error=confirmation'); assert.equal(demoUpdate(rejected), undefined);
   console.log('PASS PKCE callback keeps redirects on-site and leaves the demo only after a successful exchange');
-  console.log('8 local serverless-preview checks passed. Hosted deployment remains unverified.');
+  console.log('9 local serverless-preview checks passed. Hosted deployment remains unverified.');
 } catch (error) { console.error(error); console.error(output); process.exitCode = 1; }
 finally { await stop(); if (auth.listening) auth.close(); }

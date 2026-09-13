@@ -13,3 +13,5 @@ Run the production build and the automated Gauntlet. Do not claim full completio
 Preferred stack: Next.js App Router, TypeScript, Tailwind, shadcn/ui, Supabase Auth, PostgreSQL with pgvector, and Vercel. Follow the existing lockfile.
 
 Commit and push to thereal-baitjet/DEALR after each coherent core feature. Use descriptive commits and preserve CORE.md. Do not wait for the entire MVP to finish before backing up working milestones.
+
+Multiple AIs and accounts contribute to this repository. Read docs/HANDOFF.md and the latest checkpoint in docs/GAUNTLET-REPORT.md, fetch current main before editing, and update those notes before handing work over. Preserve the server-side cookie consent gate: optional search/view analytics must remain off without valid consent and when Global Privacy Control is on. Keep /cookies and /privacy aligned with actual data handling.

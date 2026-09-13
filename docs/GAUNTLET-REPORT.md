@@ -4,6 +4,18 @@ Status: **IN PROGRESS — progress preview authorized; full MVP not certified.**
 
 The repository began at `4b023d1` with domain/service/database foundations, 16 automated tests, and no runnable application. CORE.md is unchanged.
 
+## Cookie choices checkpoint — 2026-09-13
+
+- Started from GitHub `main` at `43b52f5`; preserved the authentication fixes and all marketplace flows.
+- Production build and its TypeScript gate pass. `npm test`: **33 checks**; `npm run test:http`: **14 checks**; `npm run test:preview`: **9 checks** — **56 automated checks total**.
+- Added first-visit Accept optional / Reject optional actions with equal prominence, a preferences dialog, and persistent Cookie settings access in the footer and policy pages. A saved choice is read back before the UI reports success; closing the dialog does not imply consent.
+- The anonymous consent endpoint works without database/auth configuration and sets a 180-day HttpOnly, SameSite=Lax cookie, Secure on HTTPS/Vercel. Tests cover persistence, invalid bodies, policy versions, expiry, ambiguous cookies, origin rejection, and Global Privacy Control.
+- Optional search/view events are off by default and gated on every server request. HTTP tests prove `track=true` cannot bypass absent/rejected/expired consent or `Sec-GPC: 1`; acceptance records a view, withdrawal stops later views, and the account/demo session stays intact. Existing transaction, authorization, persistence, and auth callback tests still pass.
+- `/cookies` inventories actual sign-in, verifier, demo, and preference cookies. `/privacy` distinguishes optional analytics from necessary marketplace records. There is no new analytics SDK, advertising tracker, dependency, migration, or environment variable. The seller dashboard explains that recorded views exclude visitors who decline analytics.
+- The control design follows the [ICO guidance on clear cookie information, active choice, and disabling optional collection](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guide-to-pecr/cookies-and-similar-technologies/). This checkpoint does not certify jurisdiction-wide legal compliance.
+- Source review covers dialog labels, keyboard controls, focus return, and mobile styles. Browser/mobile interaction QA remains unverified under the repository restriction. These local tests do not establish hosted Google sign-in or full MVP completion.
+- Production release uses the existing `main` → Vercel integration at https://baitjet.com. Confirm the exact pushed commit’s Vercel status and public policy/consent endpoints when releasing.
+
 ## Authentication Gauntlet checkpoint — 2026-09-13
 
 - Production build, **27 automated Gauntlet checks**, **12 HTTP checks**, and **8 local preview checks** pass: **47 checks total**. The three marketplace transaction scenarios and restart persistence remain passing.

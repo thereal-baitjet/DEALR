@@ -16,6 +16,23 @@ const input=(key:string,changes:Record<string,unknown>={})=>{const s=samples.fin
 const failure=async(fn:()=>Promise<unknown>,status:number)=>assert.rejects(fn,(e:unknown)=>e instanceof AppError&&e.status===status);
 before(async()=>{pg=await PGlite.create({extensions:{vector},parsers:{20:Number}});await pg.exec(await readFile('supabase/migrations/0001_core.sql','utf8'));await pg.exec(await readFile('supabase/migrations/0002_vectors.sql','utf8'));await pg.exec(await readFile('supabase/migrations/0003_unwrap_double_encoded_json.sql','utf8'));await pg.exec('SET search_path TO dealr,public');db=adapter(pg);service=new DealrService(db);seller=await service.identity('seller','Seller',[]);buyer=await service.identity('buyer','Buyer',[]);broker=await service.identity('broker','Broker',[]);outsider=await service.identity('outsider','Other member',[]);otherBroker=await service.identity('other-broker','Other broker',[]);admin=await service.identity('admin','Administrator',['admin']);await service.moderate(admin,{action:'APPROVE_BROKER',id:broker.id});await service.moderate(admin,{action:'APPROVE_BROKER',id:otherBroker.id});broker={...broker,role:'broker'};otherBroker={...otherBroker,role:'broker'};});
 after(async()=>{await pg?.close()});
+test('optional search and listing-view analytics require permission without blocking marketplace actions',async()=>{
+  const owner=await service.identity('consent-owner','Consent owner',[]), visitor=await service.identity('consent-visitor','Consent visitor',[]);
+  const listing=await service.saveListing(owner,input('tacoma'));
+  const params=new URLSearchParams({q:'Toyota truck under $30K',track:'true'});
+  const events=()=>db.query<{event:string}>("SELECT event FROM analytics WHERE actor_id=? AND event IN ('ai_search_performed','search_performed','listing_viewed') ORDER BY created_at",[visitor.id]);
+  assert.ok((await service.search(visitor,params)).listings.some(l=>l.id===listing.id));
+  await service.listing(visitor,listing.id);
+  assert.deepEqual(await events(),[]);
+  await service.search(visitor,params,undefined,true);
+  await service.listing(visitor,listing.id,true);
+  assert.deepEqual((await events()).map(e=>e.event),['ai_search_performed','listing_viewed']);
+  await service.search(visitor,params,undefined,false);
+  await service.listing(visitor,listing.id,false);
+  await service.saved(visitor,listing.id,{saved:true});
+  assert.equal((await service.state(visitor)).saved.includes(listing.id),true);
+  assert.equal((await events()).length,2,'Withdrawal stops optional events but leaves requested actions working');
+});
 test('sign-in destinations stay local after URL parsing and preserve legitimate deep links',()=>{
   for(const value of [null,undefined,'','https://evil.example','javascript:alert(1)','//evil.example','/\\evil.example','/\t/evil.example','/\n/evil.example','/\r/evil.example','/dashboard\u0000','/dashboard\u007f','/folder/..//evil.example','/%2e%2e//evil.example']) {
     assert.equal(safeNext(value),'/dashboard',JSON.stringify(value));

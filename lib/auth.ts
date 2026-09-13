@@ -92,10 +92,14 @@ export async function currentActor(): Promise<Actor | null> {
   return (await service()).identity(user.id, String(user.user_metadata?.name || user.user_metadata?.full_name || 'DEALR member'), (process.env.DEALR_ADMIN_IDS || '').split(',').map(id => id.trim()).filter(Boolean));
 }
 
-export async function signOut() {
+// Keep the private workspace available for a later demo visit, but let a
+// successfully authenticated Supabase identity take over the current account.
+export async function leaveDemo() {
   const demo = await readDemo();
-  if (demo) await writeDemo({ ...demo, active: false });
-  if (authConfigured()) { const { error } = await (await supabase()).auth.signOut(); if (error) throw new AppError(502, 'Could not sign out. Please try again.'); }
+  if (demo?.active) await writeDemo({ ...demo, active: false });
 }
 
-export function safeNext(value: string | null) { return value?.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/dashboard'; }
+export async function signOut() {
+  await leaveDemo();
+  if (authConfigured()) { const { error } = await (await supabase()).auth.signOut(); if (error) throw new AppError(502, 'Could not sign out. Please try again.'); }
+}

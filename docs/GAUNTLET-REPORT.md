@@ -4,7 +4,16 @@ Status: **IN PROGRESS — progress preview authorized; full MVP not certified.**
 
 The repository began at `4b023d1` with domain/service/database foundations, 16 automated tests, and no runnable application. CORE.md is unchanged.
 
-## Current checkpoint — 2026-09-13
+## Authentication Gauntlet checkpoint — 2026-09-13
+
+- Production build, **27 automated Gauntlet checks**, **12 HTTP checks**, and **8 local preview checks** pass: **47 checks total**. The three marketplace transaction scenarios and restart persistence remain passing.
+- Reproduced an off-site redirect bypass: a `next` path containing a tab/newline between leading slashes passed the old prefix guard, but URL parsing removed those characters and resolved an external host. Both the Google authorize route and the final callback now use the same `lib/navigation.ts` guard as the email/demo UI. It rejects control characters, backslashes, external origins, and dot segments that normalize to a double-leading-slash path. Legitimate local paths, queries, and fragments are preserved.
+- Reproduced successful email sign-in leaving the signed demo cookie active, which caused `currentActor` to continue choosing the fictional identity. Email login, immediate signup, and successful PKCE callbacks now deactivate the demo only after Supabase returns an account session. The private workspace identifier and expiration remain available for a later demo visit. Failed login, rejected codes, and signup awaiting confirmation do not change the demo.
+- Callbacks on deployments without Auth configuration return to the login explanation instead of throwing an unavailable-service error.
+- Expanded the existing preview harness with a local Supabase Auth stand-in. It exercises the installed Supabase client, password and signup responses, PKCE verifier forwarding, account/demo response cookies, callback redirects, and failure paths through the compiled Next.js app. No hosted user, database, or Google account is used by these tests.
+- Vercel reported the branding commit `771de79` deployed successfully. A real hosted Google consent/code exchange, signup/email confirmation, and refresh/revocation still need validation. Browser/mobile QA remains restricted by AGENTS.md; the full MVP is not certified.
+
+## Branding and connection checkpoint — 2026-09-13
 
 - Synced all 12 commits through `c53b666`, including the hosted Supabase, Google sign-in, JSON repair, privacy page, and baitjet.com setup.
 - Applied the requested **DEALR — a Baitjet company** identity to the shared header/footer, application metadata, privacy introduction, and README. The existing marketplace tagline remains **Find it. List it. Deal it.**

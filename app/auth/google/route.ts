@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { googleAvailable, safeNext, supabase } from '@/lib/auth';
+import { googleAvailable, supabase } from '@/lib/auth';
+import { safeNext } from '@/lib/navigation';
 import { applicationOrigin } from '@/lib/origin';
 
 export const dynamic = 'force-dynamic';

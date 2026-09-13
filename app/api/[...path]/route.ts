@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { currentActor, googleAvailable, signOut, startDemo, supabase } from '@/lib/auth';
+import { currentActor, googleAvailable, leaveDemo, signOut, startDemo, supabase } from '@/lib/auth';
 import { authConfigured, dataConfigured, demoEnabled, service } from '@/lib/runtime';
 import { AppError, emptyProfile, groundedAnswer } from '@/lib/domain';
 import { body } from '@/lib/http';
@@ -33,6 +33,7 @@ async function handle(request: Request, context: Context) {
         ? await client.auth.signUp({ email: data.email, password: data.password, options: { data: { name: data.name || 'DEALR member' }, emailRedirectTo: new URL('/auth/callback', applicationOrigin(request)).toString() } })
         : await client.auth.signInWithPassword({ email: data.email, password: data.password });
       if (response.error) throw new AppError(400, route === 'auth/login' ? 'Sign-in failed. Check your email, password, and email confirmation.' : 'Could not create an account. Check your details and try again.');
+      if (response.data.session) await leaveDemo();
       result = { signedIn: Boolean(response.data.session), confirmationRequired: !response.data.session };
     } else {
       const actor = await currentActor();

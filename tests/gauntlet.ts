@@ -8,6 +8,7 @@ import { parameters,pooledDatabase,jsonType,type Database } from '../lib/databas
 import { AppError, money,parseQuery,matchListing,validateListing,extractListing,groundedAnswer,Listing,Actor } from '../lib/domain';
 import { samples } from '../lib/samples';
 import { photoLinks } from '../lib/editor';
+import { safeNext } from '../lib/navigation';
 import { checkMutation,body } from '../lib/http';
 let pg:PGlite,db:Database,service:DealrService,seller:Actor,buyer:Actor,broker:Actor,outsider:Actor,otherBroker:Actor,admin:Actor;
 const adapter=(p:{query:Function;transaction:Function}):Database=>({async query<T>(sql:string,params:unknown[]=[]){return (await p.query(parameters(sql),params)).rows as T[]},async transaction<T>(fn:(d:Database)=>Promise<T>){return p.transaction((t:typeof p)=>fn(adapter(t)))}});
@@ -15,6 +16,14 @@ const input=(key:string,changes:Record<string,unknown>={})=>{const s=samples.fin
 const failure=async(fn:()=>Promise<unknown>,status:number)=>assert.rejects(fn,(e:unknown)=>e instanceof AppError&&e.status===status);
 before(async()=>{pg=await PGlite.create({extensions:{vector},parsers:{20:Number}});await pg.exec(await readFile('supabase/migrations/0001_core.sql','utf8'));await pg.exec(await readFile('supabase/migrations/0002_vectors.sql','utf8'));await pg.exec(await readFile('supabase/migrations/0003_unwrap_double_encoded_json.sql','utf8'));await pg.exec('SET search_path TO dealr,public');db=adapter(pg);service=new DealrService(db);seller=await service.identity('seller','Seller',[]);buyer=await service.identity('buyer','Buyer',[]);broker=await service.identity('broker','Broker',[]);outsider=await service.identity('outsider','Other member',[]);otherBroker=await service.identity('other-broker','Other broker',[]);admin=await service.identity('admin','Administrator',['admin']);await service.moderate(admin,{action:'APPROVE_BROKER',id:broker.id});await service.moderate(admin,{action:'APPROVE_BROKER',id:otherBroker.id});broker={...broker,role:'broker'};otherBroker={...otherBroker,role:'broker'};});
 after(async()=>{await pg?.close()});
+test('sign-in destinations stay local after URL parsing and preserve legitimate deep links',()=>{
+  for(const value of [null,undefined,'','https://evil.example','javascript:alert(1)','//evil.example','/\\evil.example','/\t/evil.example','/\n/evil.example','/\r/evil.example','/dashboard\u0000','/dashboard\u007f','/folder/..//evil.example','/%2e%2e//evil.example']) {
+    assert.equal(safeNext(value),'/dashboard',JSON.stringify(value));
+    assert.equal(new URL(safeNext(value),'https://baitjet.com').origin,'https://baitjet.com');
+  }
+  for(const value of ['/dashboard','/messages/thread?tab=offers#latest','/marketplace?q=Toyota%20Tacoma','/marketplace?q=https%3A%2F%2Fexample.test']) assert.equal(safeNext(value),value);
+  assert.equal(safeNext('/account/../messages'),'/messages');
+});
 test('universal listing inputs preserve facts and remove incompatible attributes',()=>{for(const key of ['tacoma','house','queen-city','pressure-washing','gaming-pc'])assert.equal(validateListing(input(key)).category,samples.find(x=>x.id==='sample-'+key)!.category);const d=validateListing(input('tacoma',{attributes:{mileage:42000,sde:999999,bedrooms:3}}));assert.deepEqual(d.attributes,{mileage:42000});assert.equal(validateListing(input('queen-city',{attributes:{}})).attributes.sde,undefined);});
 test('money parsing rejects malformed, negative, infinite, and huge amounts',()=>{assert.equal(money('$1,000,000'),100000000);assert.equal(money('1000000'),100000000);assert.equal(money('0'),0);for(const x of ['-1','1,2','1e5','<script>','1.001',Infinity,NaN,1e20,''])assert.throws(()=>money(x,true));});
 test('natural language category gauntlet respects hard constraints',()=>{const cases=[['Find me a Toyota truck under $30K.','tacoma'],['Find me a three-bedroom house around Charlotte under $450K.','house'],['Find me a business under $300K making at least $100K cash flow.','queen-city'],['Find somebody to pressure wash my driveway.','pressure-washing'],['Find me a gaming PC under $1,500.','gaming-pc']] as const;for(const [q,key] of cases){const intent=parseQuery(q),l=samples.find(x=>x.id==='sample-'+key)!;const m=matchListing(l,intent);assert.equal(m.eligible,true,q);assert.ok(m.score>=90,q)}const intent=parseQuery('Toyota truck under $30K near Charlotte');assert.equal(matchListing(samples.find(x=>x.id==='sample-truck-premium')!,intent).eligible,false);});

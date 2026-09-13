@@ -6,12 +6,13 @@ import { ArrowRight, FlaskConical, LockKeyhole } from 'lucide-react';
 import { Button, ErrorNotice, Field } from './ui';
 import { useSession } from './session';
 import { request } from '@/lib/client';
+import { safeNext } from '@/lib/navigation';
 
 export function AuthForm({ signup = false }: { signup?: boolean }) {
   const { state, refresh } = useSession(), router = useRouter(), params = useSearchParams();
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [confirmed, setConfirmed] = useState(false);
   const next = params.get('next'), failed = params.get('error');
-  const destination = next?.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : '/dashboard';
+  const destination = safeNext(next);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError('');
     const form = new FormData(event.currentTarget);

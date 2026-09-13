@@ -26,6 +26,8 @@ Supabase recommends transaction pooling for serverless runtimes and direct conne
 
 The login and signup pages show **Continue with Google** only when Supabase Auth reports the Google provider enabled. The server checks this and caches the answer for up to five minutes per instance. Otherwise the button stays hidden and email sign-in is unchanged. The flow is Supabase's server-side PKCE flow: `/auth/google` starts it and the existing `/auth/callback` exchanges the code. Supabase links a Google identity to an existing account with the same verified email.
 
+Sign-in destinations share one validated local-path guard across the browser, Google start route, and callback. A successful account session deactivates any active demo cookie, allowing the real Supabase identity to take over. Failed sign-in and signup awaiting confirmation keep the demo unchanged. The local preview Gauntlet exercises these transitions using a stand-in Auth server; a hosted consent and code exchange remains an external gate. See [Supabase's code exchange reference](https://supabase.com/docs/reference/javascript/auth-exchangecodeforsession).
+
 1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), configure the OAuth consent screen (External, app name DEALR, your support email), then create an **OAuth client ID** of type **Web application**.
 2. Add the authorized redirect URI `https://hfkuiedcutulobirfoir.supabase.co/auth/v1/callback` (the DEALR Supabase project). This flow needs no JavaScript origins.
 3. In Supabase, open Authentication → Sign In / Providers → Google, enable it, and paste the client ID and client secret. Keep the secret out of Git and chat.

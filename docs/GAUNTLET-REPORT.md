@@ -76,6 +76,13 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Not verified: a completed Google consent and code exchange. The Google app is still in Testing mode, so only listed test users can sign in. Publishing is blocked until the consent-screen Branding is complete, which likely needs a privacy policy page DEALR does not have.
 - The client secret appeared in automation tool output during setup (Google embeds it in the copy button's accessible label). It was rotated the same day. A new secret was added in Google and saved in Supabase, checked by length and prefix without reading it, and the exposed secret was disabled in Google.
 
+## Custom domain milestone — 2026-09-12
+
+- At the user's request, DEALR replaced the ChatGPT-hosted BaitJet Arcade on baitjet.com. The domains were attached to the Vercel project, and DNS was switched at Namecheap in the user's browser. Email forwarding records were left unchanged.
+- Verified by pinning requests to Vercel's IP while local DNS caught up: the home page serves DEALR, `www` and `dealr-mu.vercel.app` redirect to `https://baitjet.com`, a Let's Encrypt certificate is issued, and a demo sign-in from the baitjet.com origin succeeds after the rebuild. `/auth/google` requests the callback `https://baitjet.com/auth/callback`.
+- Google Branding now uses baitjet.com links and domain.
+- Pending: the Supabase Site URL change to `https://baitjet.com`. Until it's made, Supabase rejects the baitjet.com callback and returns Google sign-ins to the old address. Not verified: a completed Google sign-in on baitjet.com.
+
 ## Listing page and photo link fixes — 2026-09-12
 
 - Production bug reported by the user: opening a listing showed the error page. On hosted Postgres, postgres.js JSON-encoded jsonb parameters that the service had already serialized, so every jsonb column stored strings, and the listing page called `.map` on them. PGlite stores the same text as JSON, which hid the bug in tests.

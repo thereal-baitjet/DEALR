@@ -10,6 +10,8 @@ import { applicationOrigin } from '@/lib/origin';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ path: string[] }> };
+// Readable names for validation paths, e.g. images.0 is shown as "Photo 1".
+const fieldLabel = (path: (string | number)[]) => path[0] === 'images' && typeof path[1] === 'number' ? 'Photo ' + (path[1] + 1) : path[0] === 'video' ? 'Video link' : path.join('.') || 'Input';
 
 async function handle(request: Request, context: Context) {
   try {
@@ -83,7 +85,7 @@ async function handle(request: Request, context: Context) {
     return NextResponse.json(result, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     const status = error instanceof AppError ? error.status : error instanceof z.ZodError ? 400 : 500;
-    const message = error instanceof AppError ? error.message : error instanceof z.ZodError ? error.issues.map(issue => `${issue.path.join('.') || 'Input'}: ${issue.message}`).slice(0, 3).join(' ') : 'Something went wrong. Please try again.';
+    const message = error instanceof AppError ? error.message : error instanceof z.ZodError ? error.issues.map(issue => `${fieldLabel(issue.path)}: ${issue.message}`).slice(0, 3).join(' ') : 'Something went wrong. Please try again.';
     if (status === 500) console.error('DEALR request failed:', error instanceof Error ? error.name : 'Unknown error');
     return NextResponse.json({ error: message }, { status, headers: { 'Cache-Control': 'private, no-store' } });
   }

@@ -75,3 +75,11 @@ No hosted URL has been verified. The user authorized an in-progress Vercel previ
 - Verified over HTTP: production reports Google available, and `/auth/google` redirects through Supabase's PKCE authorize endpoint to Google with the correct client ID, callback, and scopes.
 - Not verified: a completed Google consent and code exchange. The Google app is still in Testing mode, so only listed test users can sign in. Publishing is blocked until the consent-screen Branding is complete, which likely needs a privacy policy page DEALR does not have.
 - The client secret appeared in automation tool output during setup (Google embeds it in the copy button's accessible label). Rotating it is recommended.
+
+## Listing page and photo link fixes — 2026-09-12
+
+- Production bug reported by the user: opening a listing showed the error page. On hosted Postgres, postgres.js JSON-encoded jsonb parameters that the service had already serialized, so every jsonb column stored strings, and the listing page called `.map` on them. PGlite stores the same text as JSON, which hid the bug in tests.
+- Fix: `lib/database.ts` passes JSON text through unchanged. A write-free query against the hosted database confirmed the new handler stores arrays where the default produced strings. Migration `0003` unwraps existing double-encoded values, and only when the inner text is valid JSON.
+- Photo links: the editor adds `https://` to bare links, upgrades `http://`, and explains an unusable line before review or save. API validation errors now name "Photo N" instead of `images.N`. File upload is still not implemented.
+- Typecheck, production build, **26 automated checks**, **12 HTTP checks**, and **5 preview checks** pass. The new checks cover the JSON handler, the `0003` repair, and photo link handling.
+- Remaining gaps: no automated test runs postgres.js against a real Postgres server, and browser rendering is still not covered. Hosted verification follows the deploy and the `0003` run.
